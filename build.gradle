@@ -1,0 +1,88 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'org.ajoberstar:semver-vcs-gradle-grgit:0.1.0'
+    }
+}
+
+plugins {
+    id 'java'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id 'com.jfrog.bintray' version '1.6'
+    id 'org.sonarqube' version '2.1'
+}
+
+apply plugin: 'org.ajoberstar.semver-vcs-grgit'
+
+group = 'org.ajoberstar'
+
+sonarqube {
+    properties {
+        property 'sonar.projectVersion', version.toString().split('-')[0]
+    }
+}
+
+repositories {
+    jcenter()
+}
+
+configurations.all {
+    exclude group: 'org.codehaus.groovy'
+}
+
+dependencies {
+    compile gradleApi()
+    compile 'org.ajoberstar:grgit:1.7.0'
+
+    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+    testRuntime 'cglib:cglib-nodep:3.1'
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from tasks.javadoc.outputs.files
+}
+
+publishing {
+    publications {
+        main(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
+
+bintray {
+    user = System.env['BINTRAY_USER']
+    key = System.env['BINTRAY_KEY']
+    publications = ['main']
+    publish = true
+    pkg {
+        repo = 'maven'
+        name = 'gradle-git-publish'
+        licenses = ['EPL-1.0']
+        websiteUrl = 'https://github.com/ajoberstar/gradle-git-publish'
+        issueTrackerUrl = 'https://github.com/ajoberstar/gradle-git-publish/issues'
+        vcsUrl = 'https://github.com/ajoberstar/gradle-git-publish.git'
+        labels = ['publish', 'git', 'gradle']
+        publicDownloadNumbers = true
+        githubRepo = 'ajoberstar/gradle-git-publish'
+
+        version {
+            name = project.version
+            vcsTag = project.version
+        }
+    }
+}
