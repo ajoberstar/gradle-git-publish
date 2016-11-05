@@ -86,3 +86,7 @@ bintray {
         }
     }
 }
+
+wrapper {
+    gradleVersion = '3.1'
+}
