@@ -8,7 +8,7 @@ buildscript {
 }
 
 plugins {
-    id 'java'
+    id 'groovy'
     id 'java-gradle-plugin'
     id 'maven-publish'
     id 'com.jfrog.bintray' version '1.6'
@@ -35,6 +35,7 @@ configurations.all {
 
 dependencies {
     compile gradleApi()
+    compile localGroovy()
     compile 'org.ajoberstar:grgit:1.7.0'
 
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
