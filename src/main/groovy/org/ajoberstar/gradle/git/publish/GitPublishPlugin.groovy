@@ -3,6 +3,8 @@ package org.ajoberstar.gradle.git.publish
 import java.nio.file.Files
 import java.util.Optional
 
+import groovy.transform.PackageScope
+
 import org.ajoberstar.grgit.Grgit
 import org.ajoberstar.grgit.exception.GrgitException
 import org.ajoberstar.grgit.operation.FetchOp
@@ -11,12 +13,14 @@ import org.eclipse.jgit.errors.RepositoryNotFoundException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.Copy
 import org.gradle.api.file.FileTree
 
 class GitPublishPlugin implements Plugin<Project> {
-    private static final String RESET_TASK = 'gitPublishReset'
-    private static final String COMMIT_TASK = 'gitPublishCommit'
-    private static final String PUSH_TASK = 'gitPublish'
+    @PackageScope static final String RESET_TASK = 'gitPublishReset'
+    @PackageScope static final String COPY_TASK = 'gitPublishCopy'
+    @PackageScope static final String COMMIT_TASK = 'gitPublishCommit'
+    @PackageScope static final String PUSH_TASK = 'gitPublishPush'
 
     @Override
     void apply(Project project) {
@@ -31,10 +35,12 @@ class GitPublishPlugin implements Plugin<Project> {
         extension.repoDir = project.file("${project.buildDir}/gitPublish")
 
         Task reset = createResetTask(project, extension)
+        Task copy = createCopyTask(project, extension)
         Task commit = createCommitTask(project, extension)
         Task push = createPushTask(project, extension)
         push.dependsOn commit
-        commit.dependsOn reset
+        commit.dependsOn copy
+        copy.dependsOn reset
     }
 
     private Task createResetTask(Project project, GitPublishExtension extension) {
@@ -62,6 +68,7 @@ class GitPublishPlugin implements Plugin<Project> {
                     // get to the state the remote has
                     repo.clean(directories: true, ignore: false)
                     repo.checkout(branch: extension.branch)
+                    // TODO is this a d uplicate of the startPoints set above?
                     repo.reset(commit: "origin/${extension.branch}", mode: ResetOp.Mode.HARD)
                 } catch (GrgitException ignored) {
                     // assume the branch doesn't exist, so start with orphan
@@ -80,9 +87,19 @@ class GitPublishPlugin implements Plugin<Project> {
                         Files.delete(file)
                     }
                 }
-                // stage the removals
+                // stage the removals, relying on dirs not being tracked by git
                 repo.add(patterns: ['.'])
             }
+        }
+        return task
+    }
+
+    private Task createCopyTask(Project project, GitPublishExtension extension) {
+        Task task = project.tasks.create(COPY_TASK, Copy)
+        task.with {
+            group = 'publishing'
+            description = 'Copy contents to be published to git.'
+            into extension.repoDir
         }
         return task
     }
