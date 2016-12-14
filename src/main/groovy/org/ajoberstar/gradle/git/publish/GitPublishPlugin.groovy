@@ -24,6 +24,7 @@ class GitPublishPlugin implements Plugin<Project> {
 
         // if using the grgit plugin, default to the repo's origin
         project.pluginManager.withPlugin('org.ajoberstar.grgit') {
+            // TODO should this be based on tracking branch instead of assuming origin?
             extension.repoUri = project.grgit?.remote?.list()?.find { it.name == 'origin' }?.url
         }
 
@@ -122,13 +123,11 @@ class GitPublishPlugin implements Plugin<Project> {
 
     private Optional<Grgit> findExistingRepo(GitPublishExtension extension) {
         try {
-            Grgit repo = Grgit.open(dir: extension.repoDir)
-            String originUri = repo.remote.list().find { it.name == 'origin' }?.url
-            if (extension.repoUri == originUri && extension.targetBranch == currentBranch) {
-                return Optional.of(repo)
-            } else {
-                return Optional.empty()
-            }
+            Optional.of(Grgit.open(dir: extension.repoDir))
+                .filter { repo ->
+                    String originUri = repo.remote.list().find { it.name == 'origin' }?.url
+                    return extension.repoUri == originUri && extension.targetBranch == repo.branch.current
+                }
         } catch (RepositoryNotFoundException | GrgitException ignored) {
             // missing, invalid, or corrupt repo
             return Optional.empty()
