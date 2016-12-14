@@ -16,6 +16,7 @@ plugins {
 }
 
 apply plugin: 'org.ajoberstar.semver-vcs-grgit'
+apply from: 'gradle/compatTest.gradle'
 
 group = 'org.ajoberstar'
 
@@ -38,8 +39,9 @@ dependencies {
     compile localGroovy()
     compile 'org.ajoberstar:grgit:1.7.0'
 
-    testCompile gradleTestKit()
-    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+    compatTestCompile gradleTestKit()
+    compatTestCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+    compatTestCompile 'org.ajoberstar:grgit:1.7.0'
 }
 
 task sourcesJar(type: Jar) {
