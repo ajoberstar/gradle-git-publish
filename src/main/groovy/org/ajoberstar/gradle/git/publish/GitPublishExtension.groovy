@@ -16,9 +16,6 @@ class GitPublishExtension {
 
     final PatternFilterable preserve = new PatternSet()
 
-    @PackageScope
-    Grgit repo
-
     public GitPublishExtension() {
         preserve.include('.git')
     }

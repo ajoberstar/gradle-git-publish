@@ -74,13 +74,13 @@ class GitPublishPlugin implements Plugin<Project> {
                     // assume the branch doesn't exist, so start with orphan
                     repo.checkout(branch: extension.branch, orphan: true)
                 }
-                extension.repo = repo
+                extension.ext.repo = repo
             }
             // clean up unwanted files
             doLast {
                 FileTree repoTree = project.fileTree(extension.repoDir)
                 FileTree preservedTree = repoTree.matching(extension.preserve)
-                FileTree unwantedTree = repoTree.minus(preservedTree)
+                FileTree unwantedTree = repoTree.minus(preservedTree).asFileTree
                 unwantedTree.visit { details ->
                     def file = details.file.toPath()
                     if (Files.isRegularFile(file)) {
@@ -88,7 +88,7 @@ class GitPublishPlugin implements Plugin<Project> {
                     }
                 }
                 // stage the removals, relying on dirs not being tracked by git
-                repo.add(patterns: ['.'])
+                extension.repo.add(patterns: ['.'])
             }
         }
         return task
@@ -126,7 +126,7 @@ class GitPublishPlugin implements Plugin<Project> {
 
     private Task createPushTask(Project project, GitPublishExtension extension) {
         Task task = project.tasks.create(PUSH_TASK)
-        tasks.with {
+        task.with {
             group = 'publishing'
             description = 'Pushes changes to git.'
             // if we didn't commit anything, don't push anything
