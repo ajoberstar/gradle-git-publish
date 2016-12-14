@@ -1,4 +1,4 @@
-ext.supportedGradleVersions = ['3.2']
+ext.supportedGradleVersions = ['3.0', '3.1', '3.2', '3.2.1']
 
 sourceSets {
     compatTest
