@@ -160,6 +160,89 @@ gitPublishCopy.from 'src'
         result.task(':gitPublishPush').outcome == TaskOutcome.SKIPPED
     }
 
+    def 'existing working repo is reused if valid'() {
+        given:
+        def working = Grgit.clone(dir: "${projectDir}/build/gitPublish", uri: remote.repository.rootDir.toURI())
+        working.checkout(branch: 'master')
+        new File(projectDir, 'build/gitPublish/master.txt') << 'working repo was here'
+        working.add(patterns: ['.'])
+        working.commit(message: 'working repo was here')
+        working.checkout(branch: 'gh-pages', startPoint: 'origin/gh-pages', createBranch: 'true')
+        working.close()
+
+
+        new File(projectDir, 'src/content.txt') << 'published content here'
+
+        buildFile << """
+plugins {
+    id 'org.ajoberstar.git-publish'
+}
+
+gitPublish {
+    repoUri = '${remote.repository.rootDir.toURI()}'
+    branch = 'gh-pages'
+}
+
+gitPublishCopy.from 'src'
+"""
+
+        when:
+        def result = create()
+            .withArguments('gitPublishPush', '--stacktrace')
+            .build()
+        and:
+        remote.checkout(branch: 'gh-pages')
+        working = Grgit.open(dir: "${projectDir}/build/gitPublish")
+        working.checkout(branch: 'master')
+        then:
+        result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
+        remote.log().size() == 2
+        working.head().fullMessage == 'working repo was here'
+    }
+
+    def 'existing working repo is scrapped if different remote'() {
+        given:
+        def badRemoteDir = tempDir.newFolder('badRemote')
+        def badRemote = Grgit.init(dir: badRemoteDir)
+
+        new File(badRemoteDir, 'master.txt') << 'bad contents here'
+        badRemote.add(patterns: ['.'])
+        badRemote.commit(message: 'bad first commit')
+
+        def working = Grgit.clone(dir: "${projectDir}/build/gitPublish", uri: badRemote.repository.rootDir.toURI())
+        working.checkout(branch: 'gh-pages', startPoint: 'origin/master', createBranch: true)
+        working.close()
+
+        new File(projectDir, 'src/content.txt') << 'published content here'
+
+        buildFile << """
+plugins {
+    id 'org.ajoberstar.git-publish'
+}
+
+gitPublish {
+    repoUri = '${remote.repository.rootDir.toURI()}'
+    branch = 'gh-pages'
+}
+
+gitPublishCopy.from 'src'
+"""
+
+        when:
+        def result = create()
+            .withArguments('gitPublishPush', '--stacktrace')
+            .build()
+        and:
+        remote.checkout(branch: 'gh-pages')
+        working = Grgit.open(dir: "${projectDir}/build/gitPublish")
+        working.checkout(branch: 'master')
+        then:
+        result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
+        remote.log().size() == 2
+        working.head().fullMessage != 'bad first commit'
+    }
+
+
     private GradleRunner create() {
         return GradleRunner.create()
             .withGradleVersion(System.properties['compat.gradle.version'])

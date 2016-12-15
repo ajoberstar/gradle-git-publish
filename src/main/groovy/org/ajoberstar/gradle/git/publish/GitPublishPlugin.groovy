@@ -141,7 +141,9 @@ class GitPublishPlugin implements Plugin<Project> {
             Optional.of(Grgit.open(dir: extension.repoDir))
                 .filter { repo ->
                     String originUri = repo.remote.list().find { it.name == 'origin' }?.url
-                    return extension.repoUri == originUri && extension.targetBranch == repo.branch.current
+                    boolean valid = new URI(extension.repoUri) == new URI(originUri) && extension.branch == repo.branch.current.name
+                    if (!valid) { repo.close() }
+                    return valid
                 }
         } catch (RepositoryNotFoundException | GrgitException ignored) {
             // missing, invalid, or corrupt repo
@@ -150,7 +152,12 @@ class GitPublishPlugin implements Plugin<Project> {
     }
 
     private Grgit freshRepo(GitPublishExtension extension) {
-        extension.repoDir.deleteDir()
+        def dir = extension.repoDir.toPath()
+        if (Files.exists(dir)) {
+            Files.walk(dir)
+            .sorted(Comparator.reverseOrder())
+            .forEach { Files.delete(it) }
+        }
         Grgit repo = Grgit.init(dir: extension.repoDir)
         repo.remote.add(name: 'origin', url: extension.repoUri)
         return repo
