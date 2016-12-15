@@ -18,6 +18,7 @@ class BaseCompatTest extends Specification {
     def setup() {
         projectDir = tempDir.newFolder('project')
         buildFile = new File(projectDir, 'build.gradle')
+        new File(projectDir, 'src').mkdirs()
 
         def remoteDir = tempDir.newFolder('remote')
         remote = Grgit.init(dir: remoteDir)
@@ -27,6 +28,7 @@ class BaseCompatTest extends Specification {
         remote.commit(message: 'first commit')
 
         remote.checkout(branch: 'gh-pages', orphan: true)
+        remote.remove(patterns: ['master.txt'])
         remoteFile('index.md') << '# This Page is Awesome!'
         remoteFile('1.0.0/index.md') << '# Version 1.0.0 is the Best!'
         remote.add(patterns: ['.'])
@@ -37,10 +39,7 @@ class BaseCompatTest extends Specification {
 
     def 'publish from clean slate results in orphaned branch'() {
         given:
-        def srcDir = new File(projectDir, 'src')
-        srcDir.mkdir()
-        def contentFile = new File(srcDir, 'content.txt')
-        contentFile << 'published content here'
+        new File(projectDir, 'src/content.txt') << 'published content here'
 
         buildFile << """
 plugins {
@@ -69,10 +68,7 @@ gitPublishCopy.from 'src'
 
     def 'publish adds to history if branch already exists'() {
         given:
-        def srcDir = new File(projectDir, 'src')
-        srcDir.mkdir()
-        def contentFile = new File(srcDir, 'content.txt')
-        contentFile << 'published content here'
+        new File(projectDir, 'src/content.txt') << 'published content here'
 
         buildFile << """
 plugins {
@@ -101,10 +97,7 @@ gitPublishCopy.from 'src'
 
     def 'can preserve specific files'() {
         given:
-        def srcDir = new File(projectDir, 'src')
-        srcDir.mkdir()
-        def contentFile = new File(srcDir, 'content.txt')
-        contentFile << 'published content here'
+        new File(projectDir, 'src/content.txt') << 'published content here'
 
         buildFile << """
 plugins {
@@ -137,11 +130,42 @@ gitPublishCopy.from 'src'
         !remoteFile('index.md').exists()
     }
 
+    def 'skips push and commit if no changes'() {
+        given:
+        new File(projectDir, 'src/index.md') << '# This Page is Awesome!'
+        new File(projectDir, 'src/1.0.0').mkdirs()
+        new File(projectDir, 'src/1.0.0/index.md') << '# Version 1.0.0 is the Best!'
+
+        buildFile << """
+plugins {
+    id 'org.ajoberstar.git-publish'
+}
+
+gitPublish {
+    repoUri = '${remote.repository.rootDir.toURI()}'
+    branch = 'gh-pages'
+}
+
+gitPublishCopy.from 'src'
+"""
+
+        when:
+        def result = create()
+            .withArguments('gitPublishPush', '--stacktrace')
+            .build()
+        and:
+        remote.checkout(branch: 'gh-pages')
+        then:
+        result.task(':gitPublishCommit').outcome == TaskOutcome.UP_TO_DATE
+        result.task(':gitPublishPush').outcome == TaskOutcome.SKIPPED
+    }
+
     private GradleRunner create() {
         return GradleRunner.create()
             .withGradleVersion(System.properties['compat.gradle.version'])
             .withPluginClasspath()
             .withProjectDir(projectDir)
+            .forwardOutput()
     }
 
     private File remoteFile(String path, boolean mkdirs = true) {
