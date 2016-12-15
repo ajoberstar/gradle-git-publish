@@ -1,7 +1,6 @@
 package org.ajoberstar.gradle.git.publish
 
 import java.nio.file.Files
-import java.util.Optional
 
 import groovy.transform.PackageScope
 
