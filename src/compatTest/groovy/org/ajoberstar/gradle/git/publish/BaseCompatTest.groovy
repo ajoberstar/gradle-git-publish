@@ -99,6 +99,44 @@ gitPublishCopy.from 'src'
         remoteFile('content.txt').text == 'published content here'
     }
 
+    def 'can preserve specific files'() {
+        given:
+        def srcDir = new File(projectDir, 'src')
+        srcDir.mkdir()
+        def contentFile = new File(srcDir, 'content.txt')
+        contentFile << 'published content here'
+
+        buildFile << """
+plugins {
+    id 'org.ajoberstar.git-publish'
+}
+
+gitPublish {
+    repoUri = '${remote.repository.rootDir.toURI()}'
+    branch = 'gh-pages'
+
+    preserve {
+        include '1.0.0/**/*'
+    }
+}
+
+gitPublishCopy.from 'src'
+"""
+
+        when:
+        def result = create()
+            .withArguments('gitPublishPush', '--stacktrace')
+            .build()
+        and:
+        remote.checkout(branch: 'gh-pages')
+        then:
+        result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
+        remote.log().size() == 2
+        remoteFile('content.txt').text == 'published content here'
+        remoteFile('1.0.0/index.md').text == '# Version 1.0.0 is the Best!'
+        !remoteFile('index.md').exists()
+    }
+
     private GradleRunner create() {
         return GradleRunner.create()
             .withGradleVersion(System.properties['compat.gradle.version'])

@@ -87,7 +87,7 @@ class GitPublishPlugin implements Plugin<Project> {
                     }
                 }
                 // stage the removals, relying on dirs not being tracked by git
-                extension.repo.add(patterns: ['.'])
+                extension.repo.add(patterns: ['.'], update: true)
             }
         }
         return task
