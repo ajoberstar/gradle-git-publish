@@ -49,9 +49,8 @@ plugins {
 gitPublish {
     repoUri = '${remote.repository.rootDir.toURI()}'
     branch = 'my-pages'
+    contents.from 'src'
 }
-
-gitPublishCopy.from 'src'
 """
 
         when:
@@ -78,9 +77,8 @@ plugins {
 gitPublish {
     repoUri = '${remote.repository.rootDir.toURI()}'
     branch = 'gh-pages'
+    contents.from 'src'
 }
-
-gitPublishCopy.from 'src'
 """
 
         when:
@@ -107,13 +105,12 @@ plugins {
 gitPublish {
     repoUri = '${remote.repository.rootDir.toURI()}'
     branch = 'gh-pages'
+    contents.from 'src'
 
     preserve {
         include '1.0.0/**/*'
     }
 }
-
-gitPublishCopy.from 'src'
 """
 
         when:
@@ -144,9 +141,8 @@ plugins {
 gitPublish {
     repoUri = '${remote.repository.rootDir.toURI()}'
     branch = 'gh-pages'
+    contents.from 'src'
 }
-
-gitPublishCopy.from 'src'
 """
 
         when:
@@ -181,9 +177,8 @@ plugins {
 gitPublish {
     repoUri = '${remote.repository.rootDir.toURI()}'
     branch = 'gh-pages'
+    contents.from 'src'
 }
-
-gitPublishCopy.from 'src'
 """
 
         when:
@@ -223,9 +218,8 @@ plugins {
 gitPublish {
     repoUri = '${remote.repository.rootDir.toURI()}'
     branch = 'gh-pages'
+    contents.from 'src'
 }
-
-gitPublishCopy.from 'src'
 """
 
         when:

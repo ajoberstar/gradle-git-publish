@@ -23,7 +23,7 @@ class GitPublishPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        GitPublishExtension extension = project.extensions.create('gitPublish', GitPublishExtension)
+        GitPublishExtension extension = project.extensions.create('gitPublish', GitPublishExtension, project)
 
         // if using the grgit plugin, default to the repo's origin
         project.pluginManager.withPlugin('org.ajoberstar.grgit') {
@@ -97,6 +97,7 @@ class GitPublishPlugin implements Plugin<Project> {
         task.with {
             group = 'publishing'
             description = 'Copy contents to be published to git.'
+            with extension.contents
             into extension.repoDir
         }
         return task
