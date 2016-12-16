@@ -235,11 +235,10 @@ gitPublishCopy.from 'src'
         and:
         remote.checkout(branch: 'gh-pages')
         working = Grgit.open(dir: "${projectDir}/build/gitPublish")
-        working.checkout(branch: 'master')
         then:
         result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
         remote.log().size() == 2
-        working.head().fullMessage != 'bad first commit'
+        working.branch.list()*.name == ['gh-pages']
     }
 
 

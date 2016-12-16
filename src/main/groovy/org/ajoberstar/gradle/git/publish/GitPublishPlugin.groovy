@@ -152,12 +152,7 @@ class GitPublishPlugin implements Plugin<Project> {
     }
 
     private Grgit freshRepo(GitPublishExtension extension) {
-        def dir = extension.repoDir.toPath()
-        if (Files.exists(dir)) {
-            Files.walk(dir)
-            .sorted(Comparator.reverseOrder())
-            .forEach { Files.delete(it) }
-        }
+        assert extension.repoDir.deleteDir()
         Grgit repo = Grgit.init(dir: extension.repoDir)
         repo.remote.add(name: 'origin', url: extension.repoUri)
         return repo
