@@ -13,6 +13,7 @@ plugins {
     id 'maven-publish'
     id 'com.jfrog.bintray' version '1.7.3'
     id 'org.sonarqube' version '2.2.1'
+    id 'com.gradle.plugin-publish'
 }
 
 apply plugin: 'org.ajoberstar.semver-vcs-grgit'
@@ -64,6 +65,23 @@ publishing {
     }
     repositories {
         mavenLocal()
+    }
+}
+
+pluginBundle {
+    website = 'https://github.com/ajoberstar/gradle-git-publish'
+    vcsUrl = 'https://github.com/ajoberstar/gradle-git-publish.git'
+    description = 'Publishing to Git repositories'
+    plugins {
+        publishPlugin {
+            id = 'org.ajoberstar.git-publish'
+            displayName = 'Git Publish Plugin'
+        }
+    }
+    mavenCoordinates {
+        groupId = project.group
+        artifactId = project.name
+        version = project.version
     }
 }
 
