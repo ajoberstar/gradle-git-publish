@@ -7,8 +7,7 @@
 
 ## Why do you care?
 
-Git is immensely popular and being able to interact with it as part of a build process can be very valuable
-to provide a more powerful and consistent result.
+Git is immensely popular and being able to publish to it as part of a build process can be very valuable, for example to publish a blog or project documentation to GitHub Pages.
 
 ## What is it?
 
@@ -20,12 +19,84 @@ configuration for authentication.
 
 ## Usage
 
-**NOTE:** gradle-git-publish requires Java 8 (or higher) and Gradle 3.0 or higher.
+See the [Release Notes](https://github.com/ajoberstar/gradle-git-publish/releases) for updates on
+changes and compatibility with Java and Gradle versions.
 
-* [Release Notes](https://github.com/ajoberstar/gradle-git-publish/releases)
-* [Wiki](https://github.com/ajoberstar/gradle-git-publish/wiki)
-* [Javadoc](http://ajoberstar.org/gradle-git-publish/docs/javadoc)
-* [Groovydoc](http://ajoberstar.org/gradle-git-publish/docs/groovydoc)
+### Applying the Plugin
+
+**Plugins DSL**
+
+```groovy
+plugins {
+    id 'org.ajoberstar.git-publish' version '<version>'
+}
+```
+
+**Classic**
+
+```groovy
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'org.ajoberstar:gradle-git-publish:<version>'
+    }
+}
+
+apply plugin: 'org.ajoberstar.git-publish'
+```
+
+### Configuration
+
+**NOTE:** In general, there are no default values here. The one exception is that the `repoUri` will be automatically set if you use the `org.ajoberstar.grgit` plugin to your project's origin repo URI.
+
+```groovy
+gitPublish {
+    // where to publish to
+    repoUri = 'git@github.com/ajoberstar/test-repo.git'
+    branch = 'gh-pages'
+
+    // generally, you don't need to touch this
+    repoDir = file("$buildDir/somewhereelse") // defaults to $buildDir/gitPublish
+
+    // what to publish, this is a standard CopySpec
+    contents {
+        from 'src/pages'
+        from(javadoc) {
+            into 'api'
+        }
+    }
+
+    // what to keep in the existing branch (include=keep)
+    preserve {
+        include '1.0.0/**'
+        exclude '1.0.0/temp.txt'
+    }
+}
+```
+
+### Tasks and Execution
+
+Generally, you'll just run `gitPublishPush`, but there is a series of four tasks that happen in order.
+
+* `gitPublishReset` - Clones/updates the working repo to the latest commit on the `repoUri` `branch` head. All files not included by the `preserve` filters will be deleted and staged.
+* `gitPublishCopy` - Copies any files defined in the `contents` CopySpec into the working repo.
+* `gitPublishCommit` - Commits all changes to the working repo.
+* `gitPublishPush` - If changes were committed, pushed them to the `repoUri`.
+
+### Avoiding Extra Copy
+
+If you are generating a large site, you may want to directly generate it into the working repo to save an extra copy step. You can do this with task dependencies and referring to the `repoDir`.
+
+```groovy
+jbakeTask {
+    outputDir gitPublish.repoDir
+    dependsOn gitPublishReset
+}
+
+gitPublishCommit.dependsOn jbakeTask
+```
 
 ## Questions, Bugs, and Features
 
@@ -47,5 +118,5 @@ to make sure it's not already in progress and for any needed discussion.
 
 Thanks to all of the [contributors](https://github.com/ajoberstar/gradle-git-publish/graphs/contributors).
 
-Credit goes to [Peter Ledbrook](https://github.com/pledbrook) for the initial
-idea for the plugin.
+I also want to acknowledge [Peter Ledbrook](https://github.com/pledbrook) for the initial
+idea and code for the plugin.
