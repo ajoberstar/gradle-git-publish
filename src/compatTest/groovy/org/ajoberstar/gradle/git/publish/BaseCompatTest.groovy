@@ -5,6 +5,7 @@ import spock.lang.Unroll
 
 import org.ajoberstar.grgit.Grgit
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -17,8 +18,7 @@ class BaseCompatTest extends Specification {
 
     def setup() {
         projectDir = tempDir.newFolder('project')
-        buildFile = new File(projectDir, 'build.gradle')
-        new File(projectDir, 'src').mkdirs()
+        buildFile = projectFile('build.gradle')
 
         def remoteDir = tempDir.newFolder('remote')
         remote = Grgit.init(dir: remoteDir)
@@ -39,7 +39,7 @@ class BaseCompatTest extends Specification {
 
     def 'publish from clean slate results in orphaned branch'() {
         given:
-        new File(projectDir, 'src/content.txt') << 'published content here'
+        projectFile('src/content.txt') << 'published content here'
 
         buildFile << """
 plugins {
@@ -52,11 +52,8 @@ gitPublish {
     contents.from 'src'
 }
 """
-
         when:
-        def result = create()
-            .withArguments('gitPublishPush', '--stacktrace')
-            .build()
+        def result = build()
         and:
         remote.checkout(branch: 'my-pages')
         then:
@@ -67,7 +64,7 @@ gitPublish {
 
     def 'publish adds to history if branch already exists'() {
         given:
-        new File(projectDir, 'src/content.txt') << 'published content here'
+        projectFile('src/content.txt') << 'published content here'
 
         buildFile << """
 plugins {
@@ -80,11 +77,8 @@ gitPublish {
     contents.from 'src'
 }
 """
-
         when:
-        def result = create()
-            .withArguments('gitPublishPush', '--stacktrace')
-            .build()
+        def result = build()
         and:
         remote.checkout(branch: 'gh-pages')
         then:
@@ -95,7 +89,7 @@ gitPublish {
 
     def 'can preserve specific files'() {
         given:
-        new File(projectDir, 'src/content.txt') << 'published content here'
+        projectFile('src/content.txt') << 'published content here'
 
         buildFile << """
 plugins {
@@ -112,11 +106,8 @@ gitPublish {
     }
 }
 """
-
         when:
-        def result = create()
-            .withArguments('gitPublishPush', '--stacktrace')
-            .build()
+        def result = build()
         and:
         remote.checkout(branch: 'gh-pages')
         then:
@@ -129,9 +120,8 @@ gitPublish {
 
     def 'skips push and commit if no changes'() {
         given:
-        new File(projectDir, 'src/index.md') << '# This Page is Awesome!'
-        new File(projectDir, 'src/1.0.0').mkdirs()
-        new File(projectDir, 'src/1.0.0/index.md') << '# Version 1.0.0 is the Best!'
+        projectFile('src/index.md') << '# This Page is Awesome!'
+        projectFile('src/1.0.0/index.md') << '# Version 1.0.0 is the Best!'
 
         buildFile << """
 plugins {
@@ -144,11 +134,8 @@ gitPublish {
     contents.from 'src'
 }
 """
-
         when:
-        def result = create()
-            .withArguments('gitPublishPush', '--stacktrace')
-            .build()
+        def result = build()
         and:
         remote.checkout(branch: 'gh-pages')
         then:
@@ -166,9 +153,6 @@ gitPublish {
         working.checkout(branch: 'gh-pages', startPoint: 'origin/gh-pages', createBranch: 'true')
         working.close()
 
-
-        new File(projectDir, 'src/content.txt') << 'published content here'
-
         buildFile << """
 plugins {
     id 'org.ajoberstar.git-publish'
@@ -182,9 +166,7 @@ gitPublish {
 """
 
         when:
-        def result = create()
-            .withArguments('gitPublishPush', '--stacktrace')
-            .build()
+        def result = build()
         and:
         remote.checkout(branch: 'gh-pages')
         working = Grgit.open(dir: "${projectDir}/build/gitPublish")
@@ -208,7 +190,7 @@ gitPublish {
         working.checkout(branch: 'gh-pages', startPoint: 'origin/master', createBranch: true)
         working.close()
 
-        new File(projectDir, 'src/content.txt') << 'published content here'
+        new File(projectDir, 'content.txt') << 'published content here'
 
         buildFile << """
 plugins {
@@ -223,9 +205,7 @@ gitPublish {
 """
 
         when:
-        def result = create()
-            .withArguments('gitPublishPush', '--stacktrace')
-            .build()
+        def result = build()
         and:
         remote.checkout(branch: 'gh-pages')
         working = Grgit.open(dir: "${projectDir}/build/gitPublish")
@@ -236,19 +216,25 @@ gitPublish {
     }
 
 
-    private GradleRunner create() {
+    private BuildResult build() {
         return GradleRunner.create()
             .withGradleVersion(System.properties['compat.gradle.version'])
             .withPluginClasspath()
             .withProjectDir(projectDir)
             .forwardOutput()
+            .withArguments('gitPublishPush', '--stacktrace')
+            .build()
     }
 
-    private File remoteFile(String path, boolean mkdirs = true) {
+    private File remoteFile(String path) {
         File file = new File(remote.repository.rootDir, path)
-        if (mkdirs) {
-            file.parentFile.mkdirs()
-        }
+        file.parentFile.mkdirs()
+        return file
+    }
+
+    private File projectFile(String path) {
+        File file = new File(projectDir, path)
+        file.parentFile.mkdirs()
         return file
     }
 }
