@@ -13,7 +13,7 @@ plugins {
     id 'maven-publish'
     id 'com.jfrog.bintray' version '1.7.3'
     id 'org.sonarqube' version '2.2.1'
-    id 'com.gradle.plugin-publish'
+    id 'com.gradle.plugin-publish' version '0.9.7'
 }
 
 apply plugin: 'org.ajoberstar.semver-vcs-grgit'
@@ -76,6 +76,7 @@ pluginBundle {
         publishPlugin {
             id = 'org.ajoberstar.git-publish'
             displayName = 'Git Publish Plugin'
+            tags = ['publish', 'git', 'gradle']
         }
     }
     mavenCoordinates {
