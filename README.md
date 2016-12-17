@@ -1,6 +1,6 @@
 # gradle-git-publish
 
-[![Bintray](https://img.shields.io/bintray/v/ajoberstar/gradle-plugins/org.ajoberstar%3Agradle-git-publish.svg?style=flat-square)](https://bintray.com/ajoberstar/gradle-plugins/org.ajoberstar%3Agradle-git-publish/_latestVersion)
+[![Bintray](https://img.shields.io/bintray/v/ajoberstar/maven/org.ajoberstar%3Agradle-git-publish.svg?style=flat-square)](https://bintray.com/ajoberstar/maven/org.ajoberstar%3Agradle-git-publish/_latestVersion)
 [![Travis](https://img.shields.io/travis/ajoberstar/gradle-git-publish.svg?style=flat-square)](https://travis-ci.org/ajoberstar/gradle-git-publish)
 [![Quality Gate](https://sonarqube.ajoberstar.com/api/badges/gate?key=org.ajoberstar:gradle-git-publish)](https://sonarqube.ajoberstar.com/dashboard/index/org.ajoberstar:gradle-git-publish)
 [![GitHub license](https://img.shields.io/github/license/ajoberstar/gradle-git-publish.svg?style=flat-square)](https://github.com/ajoberstar/gradle-git-publish/blob/master/LICENSE)
