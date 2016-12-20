@@ -53,8 +53,9 @@ apply plugin: 'org.ajoberstar.git-publish'
 
 ```groovy
 gitPublish {
-    // where to publish to
+    // where to publish to (repo must exist)
     repoUri = 'git@github.com/ajoberstar/test-repo.git'
+    // branch will be created if it doesn't exist
     branch = 'gh-pages'
 
     // generally, you don't need to touch this
