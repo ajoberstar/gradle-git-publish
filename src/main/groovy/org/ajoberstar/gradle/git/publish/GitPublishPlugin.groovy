@@ -29,6 +29,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Copy
 import org.gradle.api.file.FileTree
+import org.eclipse.jgit.transport.URIish
 
 class GitPublishPlugin implements Plugin<Project> {
   @PackageScope static final String RESET_TASK = 'gitPublishReset'
@@ -157,7 +158,8 @@ class GitPublishPlugin implements Plugin<Project> {
       Optional.of(Grgit.open(dir: extension.repoDir))
         .filter { repo ->
           String originUri = repo.remote.list().find { it.name == 'origin' }?.url
-          boolean valid = new URI(extension.repoUri) == new URI(originUri) && extension.branch == repo.branch.current.name
+          // need to use the URIish to normalize them and ensure we support all Git compatible URI-ishs (URL is too limiting)
+          boolean valid = new URIish(extension.repoUri) == new URIish(originUri) && extension.branch == repo.branch.current.name
           if (!valid) { repo.close() }
           return valid
         }
