@@ -18,11 +18,11 @@ configurations.all {
 dependencies {
   compile gradleApi()
   compile localGroovy()
-  compile 'org.ajoberstar:grgit:1.7.3-rc.1'
+  compile 'org.ajoberstar:grgit:1.9.0'
 
   compatTestCompile gradleTestKit()
   compatTestCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
-  compatTestCompile 'org.ajoberstar:grgit:1.7.3-rc.1'
+  compatTestCompile 'org.ajoberstar:grgit:1.9.0'
 }
 
 stutter {
