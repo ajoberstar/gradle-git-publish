@@ -171,7 +171,9 @@ class GitPublishPlugin implements Plugin<Project> {
       group = 'publishing'
       description = 'Closes git repository.'
       doLast {
-        extension.repo.close()
+        if (extension.ext.has('repo')) {
+          extension.repo.close()
+        }
       }
     }
     return task
