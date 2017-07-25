@@ -75,7 +75,12 @@ class GitPublishPlugin implements Plugin<Project> {
       doFirst {
         Grgit repo = findExistingRepo(extension).orElseGet { freshRepo(extension) }
 
-        try {
+        // TODO replace with grgit.lsremote when added to Grgit
+        def cmd = repo.repository.jgit.lsRemote().setRemote('origin').setHeads(true)
+        org.ajoberstar.grgit.auth.TransportOpUtil.configure(cmd, null)
+        def branchExists = cmd.call().find { it.name == "refs/heads/${extension.branch}" }
+
+        if (branchExists) {
           // fetch only existing pages branch
           repo.fetch(refSpecs: ["+refs/heads/${extension.branch}:refs/remotes/origin/${extension.branch}"], tagMode: FetchOp.TagMode.NONE)
 
@@ -92,8 +97,7 @@ class GitPublishPlugin implements Plugin<Project> {
           repo.clean(directories: true, ignore: false)
           repo.checkout(branch: extension.branch)
           repo.reset(commit: "origin/${extension.branch}", mode: ResetOp.Mode.HARD)
-        } catch (GrgitException ignored) {
-          // assume the branch doesn't exist, so start with orphan
+        } else {
           repo.checkout(branch: extension.branch, orphan: true)
         }
         extension.ext.repo = repo
