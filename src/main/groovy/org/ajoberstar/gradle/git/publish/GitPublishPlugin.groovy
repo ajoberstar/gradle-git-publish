@@ -24,6 +24,7 @@ import org.ajoberstar.grgit.exception.GrgitException
 import org.ajoberstar.grgit.operation.FetchOp
 import org.ajoberstar.grgit.operation.ResetOp
 import org.eclipse.jgit.errors.RepositoryNotFoundException
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -75,7 +76,12 @@ class GitPublishPlugin implements Plugin<Project> {
       doFirst {
         Grgit repo = findExistingRepo(extension).orElseGet { freshRepo(extension) }
 
-        try {
+        // TODO replace with grgit.lsremote when added to Grgit
+        def cmd = repo.repository.jgit.lsRemote().setRemote('origin').setHeads(true)
+        org.ajoberstar.grgit.auth.TransportOpUtil.configure(cmd, null)
+        def branchExists = cmd.call().find { it.name == "refs/heads/${extension.branch}" }
+
+        if (branchExists) {
           // fetch only existing pages branch
           repo.fetch(refSpecs: ["+refs/heads/${extension.branch}:refs/remotes/origin/${extension.branch}"], tagMode: FetchOp.TagMode.NONE)
 
@@ -92,8 +98,7 @@ class GitPublishPlugin implements Plugin<Project> {
           repo.clean(directories: true, ignore: false)
           repo.checkout(branch: extension.branch)
           repo.reset(commit: "origin/${extension.branch}", mode: ResetOp.Mode.HARD)
-        } catch (GrgitException ignored) {
-          // assume the branch doesn't exist, so start with orphan
+        } else {
           repo.checkout(branch: extension.branch, orphan: true)
         }
         extension.ext.repo = repo
@@ -167,7 +172,9 @@ class GitPublishPlugin implements Plugin<Project> {
       group = 'publishing'
       description = 'Closes git repository.'
       doLast {
-        extension.repo.close()
+        if (extension.ext.has('repo')) {
+          extension.repo.close()
+        }
       }
     }
     return task
@@ -190,7 +197,9 @@ class GitPublishPlugin implements Plugin<Project> {
   }
 
   private Grgit freshRepo(GitPublishExtension extension) {
-    assert extension.repoDir.deleteDir()
+    if (!extension.repoDir.deleteDir()) {
+      throw new GradleException("Failed to clean up repo dir: ${extension.repoDir}")
+    }
     Grgit repo = Grgit.init(dir: extension.repoDir)
     repo.remote.add(name: 'origin', url: extension.repoUri)
     return repo
