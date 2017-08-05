@@ -20,7 +20,6 @@ import java.nio.file.Files
 import groovy.transform.PackageScope
 
 import org.ajoberstar.grgit.Grgit
-import org.ajoberstar.grgit.exception.GrgitException
 import org.ajoberstar.grgit.operation.FetchOp
 import org.ajoberstar.grgit.operation.ResetOp
 import org.eclipse.jgit.errors.RepositoryNotFoundException
@@ -37,7 +36,6 @@ class GitPublishPlugin implements Plugin<Project> {
   @PackageScope static final String COPY_TASK = 'gitPublishCopy'
   @PackageScope static final String COMMIT_TASK = 'gitPublishCommit'
   @PackageScope static final String PUSH_TASK = 'gitPublishPush'
-  @PackageScope static final String CLOSE_TASK = 'gitPublishClose'
 
   @Override
   void apply(Project project) {
@@ -55,16 +53,17 @@ class GitPublishPlugin implements Plugin<Project> {
     Task copy = createCopyTask(project, extension)
     Task commit = createCommitTask(project, extension)
     Task push = createPushTask(project, extension)
-    Task close = createCloseTask(project, extension)
     push.dependsOn commit
     commit.dependsOn copy
     copy.dependsOn reset
 
-    // always run the close task at the end
-    reset.finalizedBy close
-    copy.finalizedBy close
-    commit.finalizedBy close
-    push.finalizedBy close
+    // always close the repo at the end of the build
+    project.gradle.buildFinished {
+      if (extension.ext.has('repo')) {
+        project.logger.info('Closing Git publish repo: {}', extension.repo.repository.rootDir)
+        extension.repo.close()
+      }
+    }
   }
 
   private Task createResetTask(Project project, GitPublishExtension extension) {
@@ -74,7 +73,7 @@ class GitPublishPlugin implements Plugin<Project> {
       description = 'Prepares a git repo for new content to be generated.'
       // get the repo in place
       doFirst {
-        Grgit repo = findExistingRepo(extension).orElseGet { freshRepo(extension) }
+        Grgit repo = findExistingRepo(project, extension).orElseGet { freshRepo(extension) }
 
         // TODO replace with grgit.lsremote when added to Grgit
         def cmd = repo.repository.jgit.lsRemote().setRemote('origin').setHeads(true)
@@ -166,21 +165,7 @@ class GitPublishPlugin implements Plugin<Project> {
     return task
   }
 
-  private Task createCloseTask(Project project, GitPublishExtension extension) {
-    Task task = project.tasks.create(CLOSE_TASK)
-    task.with {
-      group = 'publishing'
-      description = 'Closes git repository.'
-      doLast {
-        if (extension.ext.has('repo')) {
-          extension.repo.close()
-        }
-      }
-    }
-    return task
-  }
-
-  private Optional<Grgit> findExistingRepo(GitPublishExtension extension) {
+  private Optional<Grgit> findExistingRepo(Project project, GitPublishExtension extension) {
     try {
       Optional.of(Grgit.open(dir: extension.repoDir))
         .filter { repo ->
@@ -190,8 +175,9 @@ class GitPublishPlugin implements Plugin<Project> {
           if (!valid) { repo.close() }
           return valid
         }
-    } catch (RepositoryNotFoundException | GrgitException ignored) {
+    } catch (Exception e) {
       // missing, invalid, or corrupt repo
+      project.logger.debug('Failed to find existing Git publish repository.', e)
       return Optional.empty()
     }
   }

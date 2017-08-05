@@ -98,7 +98,6 @@ gitPublish {
     remote.checkout(branch: 'gh-pages')
     then:
     result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
-    result.task(':gitPublishClose').outcome == TaskOutcome.SUCCESS
     remote.log().size() == 2
     remoteFile('content.txt').text == 'published content here'
   }
@@ -128,7 +127,6 @@ gitPublish {
     remote.checkout(branch: 'gh-pages')
     then:
     result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
-    result.task(':gitPublishClose').outcome == TaskOutcome.SUCCESS
     remote.log().size() == 2
     remoteFile('content.txt').text == 'published content here'
     remoteFile('1.0.0/index.md').text == '# Version 1.0.0 is the Best!'
@@ -158,7 +156,6 @@ gitPublish {
     then:
     result.task(':gitPublishCommit').outcome == TaskOutcome.UP_TO_DATE
     result.task(':gitPublishPush').outcome == TaskOutcome.SKIPPED
-    result.task(':gitPublishClose').outcome == TaskOutcome.SUCCESS
   }
 
   def 'existing working repo is reused if valid'() {
@@ -191,7 +188,6 @@ gitPublish {
     working.checkout(branch: 'master')
     then:
     result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
-    result.task(':gitPublishClose').outcome == TaskOutcome.SUCCESS
     remote.log().size() == 2
     working.head().fullMessage == 'working repo was here'
   }
@@ -230,7 +226,6 @@ gitPublish {
     working = Grgit.open(dir: "${projectDir}/build/gitPublish")
     then:
     result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
-    result.task(':gitPublishClose').outcome == TaskOutcome.SUCCESS
     remote.log().size() == 2
     working.branch.list()*.name == ['gh-pages']
   }
