@@ -1,5 +1,5 @@
 plugins {
-  id 'org.ajoberstar.defaults' version '0.7.3'
+  id 'org.ajoberstar.defaults' version '0.7.2'
   id 'groovy'
   id 'java-gradle-plugin'
 }
@@ -56,5 +56,5 @@ pluginBundle {
 }
 
 wrapper {
-  gradleVersion = '4.0.2'
+  gradleVersion = '3.4'
 }
