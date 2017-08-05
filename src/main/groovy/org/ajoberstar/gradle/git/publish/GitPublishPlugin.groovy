@@ -20,7 +20,6 @@ import java.nio.file.Files
 import groovy.transform.PackageScope
 
 import org.ajoberstar.grgit.Grgit
-import org.ajoberstar.grgit.exception.GrgitException
 import org.ajoberstar.grgit.operation.FetchOp
 import org.ajoberstar.grgit.operation.ResetOp
 import org.eclipse.jgit.errors.RepositoryNotFoundException
@@ -74,7 +73,7 @@ class GitPublishPlugin implements Plugin<Project> {
       description = 'Prepares a git repo for new content to be generated.'
       // get the repo in place
       doFirst {
-        Grgit repo = findExistingRepo(extension).orElseGet { freshRepo(extension) }
+        Grgit repo = findExistingRepo(project, extension).orElseGet { freshRepo(extension) }
 
         // TODO replace with grgit.lsremote when added to Grgit
         def cmd = repo.repository.jgit.lsRemote().setRemote('origin').setHeads(true)
@@ -180,7 +179,7 @@ class GitPublishPlugin implements Plugin<Project> {
     return task
   }
 
-  private Optional<Grgit> findExistingRepo(GitPublishExtension extension) {
+  private Optional<Grgit> findExistingRepo(Project project, GitPublishExtension extension) {
     try {
       Optional.of(Grgit.open(dir: extension.repoDir))
         .filter { repo ->
@@ -190,8 +189,9 @@ class GitPublishPlugin implements Plugin<Project> {
           if (!valid) { repo.close() }
           return valid
         }
-    } catch (RepositoryNotFoundException | GrgitException ignored) {
+    } catch (Exception e) {
       // missing, invalid, or corrupt repo
+      project.logger.debug('Failed to find existing Git publish repository.', e)
       return Optional.empty()
     }
   }
