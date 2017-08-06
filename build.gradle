@@ -1,28 +1,30 @@
 plugins {
-  id 'org.ajoberstar.defaults' version '0.7.3'
+  id 'org.ajoberstar.defaults' version '0.8.0'
   id 'groovy'
   id 'java-gradle-plugin'
 }
 
 group = 'org.ajoberstar'
 
-
 repositories {
   jcenter()
 }
 
-configurations.all {
-  exclude group: 'org.codehaus.groovy'
-}
-
 dependencies {
+  // gradle
   compile gradleApi()
-  compile localGroovy()
-  compile 'org.ajoberstar:grgit:2.0.0'
 
+  // groovy
+  compile localGroovy()
+
+  // grgit
+  def grgitVersion = '[2.0.0,)'
+  compile "org.ajoberstar:grgit:$grgitVersion"
+  compatTestCompile "org.ajoberstar:grgit:$grgitVersion"
+
+  // testing
   compatTestCompile gradleTestKit()
   compatTestCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
-  compatTestCompile 'org.ajoberstar:grgit:2.0.0'
 }
 
 stutter {
@@ -56,5 +58,5 @@ pluginBundle {
 }
 
 wrapper {
-  gradleVersion = '3.4'
+  gradleVersion = '4.0.2'
 }
