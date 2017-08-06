@@ -1,5 +1,5 @@
 plugins {
-  id 'org.ajoberstar.defaults' version '0.7.2'
+  id 'org.ajoberstar.defaults' version '0.7.3'
   id 'groovy'
   id 'java-gradle-plugin'
 }
@@ -18,11 +18,11 @@ configurations.all {
 dependencies {
   compile gradleApi()
   compile localGroovy()
-  compile 'org.ajoberstar:grgit:2.0.0-rc.1'
+  compile 'org.ajoberstar:grgit:2.0.0'
 
   compatTestCompile gradleTestKit()
   compatTestCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
-  compatTestCompile 'org.ajoberstar:grgit:2.0.0-rc.1'
+  compatTestCompile 'org.ajoberstar:grgit:2.0.0'
 }
 
 stutter {
