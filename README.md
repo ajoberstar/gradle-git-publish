@@ -106,15 +106,15 @@ gitPublishCommit.dependsOn jbakeTask
 
 The following table should help translate settings you used in `org.ajoberstar.github-pages` to this plugin's format. Additionally reference the Configuration section above for more information on the current feature set.
 
-| org.ajoberstar.github-pages | org.ajoberstar.git-publish | Comment |
-|-----------------------------|----------------------------|---------|
-| `repoUri`                   | `repoUri`                  | Used to allow any Object (which would be lazily unpacked to a String). Now requires a String. |
-| `targetBranch`              | `branch`                   | The old plugin defaulted to `gh-pages`, the new one has no default. This must be a String. |
-| `workingPath`               | `repoDir`                  | Used to allow any Object and called `file()` on it for you. Now expects a File. |
-| `pages`                     | `contents`                 | Just a name change. |
-| `deleteExistingFiles`       | `preserve`                 | If previously `true` (the default), do nothing. If previously `false`, `preserve { include '**/*' }`
-| `commitMessage`             | `commitMessage`            | Just copy from the old value. |
-| `credentials`               | _None_                     | This feature was removed. |
+| org.ajoberstar.github-pages | org.ajoberstar.git-publish  | Comment |
+|-----------------------------|-----------------------------|---------|
+| `repoUri`                   | `repoUri`                   | Used to allow any Object (which would be lazily unpacked to a String). Now requires a String. |
+| `targetBranch`              | `branch`                    | The old plugin defaulted to `gh-pages`, the new one has no default. This must be a String. |
+| `workingPath`               | `repoDir`                   | Used to allow any Object and called `file()` on it for you. Now expects a File. |
+| `pages`                     | `contents`                  | Just a name change. |
+| `deleteExistingFiles`       | `preserve`                  | If previously `true` (the default), do nothing. If previously `false`, `preserve { include '**/*' }`
+| `commitMessage`             | `commitMessage`             | Just copy from the old value. |
+| `credentials`               | env variable or system prop | `GRGIT_USER` environment variable or `org.ajoberstar.grgit.auth.username` system property. |
 
 ## Questions, Bugs, and Features
 
