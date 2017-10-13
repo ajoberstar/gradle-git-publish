@@ -52,7 +52,7 @@ class GitPublishPlugin implements Plugin<Project> {
     Task reset = createResetTask(project, extension)
     Task copy = createCopyTask(project, extension)
     Task commit = createCommitTask(project, extension)
-    Task push = createPushTask(project, extension)
+    Task push = createPushTask(project, extension, commit)
     push.dependsOn commit
     commit.dependsOn copy
     copy.dependsOn reset
@@ -151,13 +151,13 @@ class GitPublishPlugin implements Plugin<Project> {
     return task
   }
 
-  private Task createPushTask(Project project, GitPublishExtension extension) {
+  private Task createPushTask(Project project, GitPublishExtension extension, Task commit) {
     Task task = project.tasks.create(PUSH_TASK)
     task.with {
       group = 'publishing'
       description = 'Pushes changes to git.'
       // if we didn't commit anything, don't push anything
-      onlyIf { dependsOnTaskDidWork() }
+      onlyIf { commit.didWork }
       doLast {
         extension.repo.push()
       }
