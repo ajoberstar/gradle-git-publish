@@ -126,7 +126,7 @@ class GitPublishPlugin implements Plugin<Project> {
       group = 'publishing'
       description = 'Copy contents to be published to git.'
       with extension.contents
-      into extension.repoDir
+      into { extension.repoDir }
     }
     return task
   }

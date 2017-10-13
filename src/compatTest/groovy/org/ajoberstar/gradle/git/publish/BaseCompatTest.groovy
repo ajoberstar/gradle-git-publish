@@ -102,6 +102,28 @@ gitPublish {
     remoteFile('content.txt').text == 'published content here'
   }
 
+  def 'can customize working directory'() {
+    given:
+    projectFile('src/content.txt') << 'published content here'
+
+    buildFile << """
+plugins {
+  id 'org.ajoberstar.git-publish'
+}
+
+gitPublish {
+  repoUri = '${remote.repository.rootDir.toURI()}'
+  repoDir = file('build/this-is-custom')
+  branch = 'gh-pages'
+  contents.from 'src'
+}
+"""
+    when:
+    def result = build()
+    then:
+    projectFile('build/this-is-custom/content.txt').exists()
+  }
+
   def 'can preserve specific files'() {
     given:
     projectFile('src/content.txt') << 'published content here'
