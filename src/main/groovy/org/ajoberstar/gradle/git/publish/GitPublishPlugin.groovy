@@ -71,6 +71,10 @@ class GitPublishPlugin implements Plugin<Project> {
     task.with {
       group = 'publishing'
       description = 'Prepares a git repo for new content to be generated.'
+
+      // creates/clones the repo
+      outputs.dir(extension.repoDir)
+
       // get the repo in place
       doFirst {
         Grgit repo = findExistingRepo(project, extension).orElseGet { freshRepo(extension) }
@@ -136,6 +140,8 @@ class GitPublishPlugin implements Plugin<Project> {
     task.with {
       group = 'publishing'
       description = 'Commits changes to be published to git.'
+      // creates commit in the repo
+      outputs.dir(extension.repoDir)
       doLast {
         Grgit repo = extension.repo
         repo.add(patterns: ['.'])
