@@ -55,6 +55,8 @@ apply plugin: 'org.ajoberstar.git-publish'
 gitPublish {
     // where to publish to (repo must exist)
     repoUri = 'git@github.com/ajoberstar/test-repo.git'
+    // (or 'https://github.com/ajoberstar/test-repo.git', depending on authentication)
+    
     // branch will be created if it doesn't exist
     branch = 'gh-pages'
 
