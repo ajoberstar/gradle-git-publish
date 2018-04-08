@@ -1,8 +1,7 @@
 # gradle-git-publish
 
 [![Download](https://api.bintray.com/packages/ajoberstar/maven/gradle-git-publish/images/download.svg)](https://bintray.com/ajoberstar/maven/gradle-git-publish/_latestVersion)
-[![Travis](https://img.shields.io/travis/ajoberstar/gradle-git-publish.svg?style=flat-square)](https://travis-ci.org/ajoberstar/gradle-git-publish)
-[![GitHub license](https://img.shields.io/github/license/ajoberstar/gradle-git-publish.svg?style=flat-square)](https://github.com/ajoberstar/gradle-git-publish/blob/master/LICENSE)
+[![CircleCI](https://circleci.com/gh/ajoberstar/gradle-git-publish.svg?style=svg)](https://circleci.com/gh/ajoberstar/gradle-git-publish)
 
 ## Why do you care?
 
@@ -55,7 +54,7 @@ gitPublish {
     // where to publish to (repo must exist)
     repoUri = 'git@github.com/ajoberstar/test-repo.git'
     // (or 'https://github.com/ajoberstar/test-repo.git', depending on authentication)
-    
+
     // branch will be created if it doesn't exist
     branch = 'gh-pages'
 

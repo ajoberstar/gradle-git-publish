@@ -57,18 +57,6 @@
             "requested": "[2.0.0,)"
         }
     },
-    "jacocoAgent": {
-        "org.jacoco:org.jacoco.agent": {
-            "locked": "0.7.9",
-            "requested": "0.7.9"
-        }
-    },
-    "jacocoAnt": {
-        "org.jacoco:org.jacoco.ant": {
-            "locked": "0.7.9",
-            "requested": "0.7.9"
-        }
-    },
     "runtime": {
         "org.ajoberstar:grgit": {
             "locked": "2.1.1",
