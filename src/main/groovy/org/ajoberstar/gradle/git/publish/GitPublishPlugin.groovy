@@ -1,5 +1,10 @@
 package org.ajoberstar.gradle.git.publish
 
+import org.ajoberstar.gradle.git.publish.tasks.GitPublishCommit
+import org.ajoberstar.gradle.git.publish.tasks.GitPublishPush
+import org.ajoberstar.gradle.git.publish.tasks.GitPublishReset
+import org.gradle.api.provider.Provider
+
 import java.nio.file.Files
 
 import groovy.transform.PackageScope
@@ -34,10 +39,14 @@ class GitPublishPlugin implements Plugin<Project> {
 
     extension.repoDir = project.file("${project.buildDir}/gitPublish")
 
-    Task reset = createResetTask(project, extension)
+    Provider<Grgit> grgitProvider = project.provider {
+      findExistingRepo(project, extension).orElseGet { freshRepo(extension) }
+    }
+
+    Task reset = createResetTask(project, extension, grgitProvider)
     Task copy = createCopyTask(project, extension)
-    Task commit = createCommitTask(project, extension)
-    Task push = createPushTask(project, extension, commit)
+    Task commit = createCommitTask(project, extension, grgitProvider)
+    Task push = createPushTask(project, extension, grgitProvider)
     push.dependsOn commit
     commit.dependsOn copy
     copy.dependsOn reset
@@ -51,106 +60,47 @@ class GitPublishPlugin implements Plugin<Project> {
     }
   }
 
-  private Task createResetTask(Project project, GitPublishExtension extension) {
-    Task task = project.tasks.create(RESET_TASK)
+  private Task createResetTask(Project project, GitPublishExtension extension, Provider<Grgit> grgitProvider) {
+    GitPublishReset task = project.tasks.create(RESET_TASK, GitPublishReset)
     task.with {
       group = 'publishing'
       description = 'Prepares a git repo for new content to be generated.'
-
-      // get the repo in place
-      doFirst {
-        Grgit repo = findExistingRepo(project, extension).orElseGet { freshRepo(extension) }
-
-        // TODO replace with grgit.lsremote when added to Grgit
-        def cmd = repo.repository.jgit.lsRemote().setRemote('origin').setHeads(true)
-        org.ajoberstar.grgit.auth.TransportOpUtil.configure(cmd, null)
-        def branchExists = cmd.call().find { it.name == "refs/heads/${extension.branch}" }
-
-        if (branchExists) {
-          // fetch only existing pages branch
-          repo.fetch(refSpecs: ["+refs/heads/${extension.branch}:refs/remotes/origin/${extension.branch}"], tagMode: FetchOp.TagMode.NONE)
-
-          // make sure local branch exists and tracks the correct remote branch
-          if (repo.branch.list().find { it.name == extension.branch }) {
-            // branch already exists, set new startPoint
-            repo.branch.change(name: extension.branch, startPoint: "origin/${extension.branch}")
-          } else {
-            // branch doesn't exist, create
-            repo.branch.add(name: extension.branch, startPoint: "origin/${extension.branch}")
-          }
-
-          // get to the state the remote has
-          repo.clean(directories: true, ignore: false)
-          repo.checkout(branch: extension.branch)
-          repo.reset(commit: "origin/${extension.branch}", mode: ResetOp.Mode.HARD)
-        } else {
-          repo.checkout(branch: extension.branch, orphan: true)
-        }
-        extension.ext.repo = repo
-      }
-      // clean up unwanted files
-      doLast {
-        FileTree repoTree = project.fileTree(extension.repoDir)
-        FileTree preservedTree = repoTree.matching(extension.preserve)
-        FileTree unwantedTree = repoTree.minus(preservedTree).asFileTree
-        unwantedTree.visit { details ->
-          def file = details.file.toPath()
-          if (Files.isRegularFile(file)) {
-            Files.delete(file)
-          }
-        }
-        // stage the removals, relying on dirs not being tracked by git
-        extension.repo.add(patterns: ['.'], update: true)
-      }
+      grgit = grgitProvider
+      branch = project.provider { extension.branch }
+      preserve = extension.preserve
     }
     return task
   }
 
   private Task createCopyTask(Project project, GitPublishExtension extension) {
-    Task task = project.tasks.create(COPY_TASK)
+    Copy task = project.tasks.create(COPY_TASK, Copy)
     task.with {
       group = 'publishing'
       description = 'Copy contents to be published to git.'
-      doLast {
-        project.copy {
-          with extension.contents
-          into { extension.repoDir }
-        }
-      }
+      with(extension.contents)
+      into { extension.repoDir }
     }
     return task
   }
 
-  private Task createCommitTask(Project project, GitPublishExtension extension) {
-    Task task = project.tasks.create(COMMIT_TASK)
+  private Task createCommitTask(Project project, GitPublishExtension extension, Provider<Grgit> grgitProvider) {
+    GitPublishCommit task = project.tasks.create(COMMIT_TASK, GitPublishCommit)
     task.with {
       group = 'publishing'
       description = 'Commits changes to be published to git.'
-      doLast {
-        Grgit repo = extension.repo
-        repo.add(patterns: ['.'])
-        // check if anything has changed
-        if (repo.status().clean) {
-          didWork = false
-        } else {
-          repo.commit(message: extension.commitMessage)
-          didWork = true
-        }
-      }
+      grgit = grgitProvider
+      message = project.provider { extension.commitMessage }
     }
     return task
   }
 
-  private Task createPushTask(Project project, GitPublishExtension extension, Task commit) {
-    Task task = project.tasks.create(PUSH_TASK)
+  private Task createPushTask(Project project, GitPublishExtension extension, Provider<Grgit> grgitProvider) {
+    GitPublishPush task = project.tasks.create(PUSH_TASK, GitPublishPush)
     task.with {
       group = 'publishing'
       description = 'Pushes changes to git.'
-      // if we didn't commit anything, don't push anything
-      onlyIf { commit.didWork }
-      doLast {
-        extension.repo.push()
-      }
+      grgit = grgitProvider
+      branch = project.provider { extension.branch }
     }
     return task
   }
