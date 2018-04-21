@@ -1,7 +1,7 @@
 {
     "compatTestCompile": {
         "org.ajoberstar:grgit": {
-            "locked": "2.2.0-rc.1",
+            "locked": "2.2.0",
             "requested": "[2.0.0,)"
         },
         "org.spockframework:spock-core": {
@@ -11,7 +11,7 @@
     },
     "compatTestCompileClasspath": {
         "org.ajoberstar:grgit": {
-            "locked": "2.2.0-rc.1",
+            "locked": "2.2.0",
             "requested": "[2.0.0,)"
         },
         "org.spockframework:spock-core": {
@@ -21,7 +21,7 @@
     },
     "compatTestRuntime": {
         "org.ajoberstar:grgit": {
-            "locked": "2.2.0-rc.1",
+            "locked": "2.2.0",
             "requested": "[2.0.0,)"
         },
         "org.spockframework:spock-core": {
@@ -31,7 +31,7 @@
     },
     "compatTestRuntimeClasspath": {
         "org.ajoberstar:grgit": {
-            "locked": "2.2.0-rc.1",
+            "locked": "2.2.0",
             "requested": "[2.0.0,)"
         },
         "org.spockframework:spock-core": {
@@ -41,55 +41,55 @@
     },
     "compile": {
         "org.ajoberstar:grgit": {
-            "locked": "2.2.0-rc.1",
+            "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "compileClasspath": {
         "org.ajoberstar:grgit": {
-            "locked": "2.2.0-rc.1",
+            "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "default": {
         "org.ajoberstar:grgit": {
-            "locked": "2.2.0-rc.1",
+            "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "runtime": {
         "org.ajoberstar:grgit": {
-            "locked": "2.2.0-rc.1",
+            "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "runtimeClasspath": {
         "org.ajoberstar:grgit": {
-            "locked": "2.2.0-rc.1",
+            "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "testCompile": {
         "org.ajoberstar:grgit": {
-            "locked": "2.2.0-rc.1",
+            "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "testCompileClasspath": {
         "org.ajoberstar:grgit": {
-            "locked": "2.2.0-rc.1",
+            "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "testRuntime": {
         "org.ajoberstar:grgit": {
-            "locked": "2.2.0-rc.1",
+            "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "testRuntimeClasspath": {
         "org.ajoberstar:grgit": {
-            "locked": "2.2.0-rc.1",
+            "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     }
