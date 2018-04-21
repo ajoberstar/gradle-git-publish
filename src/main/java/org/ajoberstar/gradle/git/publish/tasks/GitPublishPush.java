@@ -1,17 +1,16 @@
 package org.ajoberstar.gradle.git.publish.tasks;
 
+import java.io.File;
+import java.util.Arrays;
+
+import javax.inject.Inject;
+
 import org.ajoberstar.grgit.BranchStatus;
 import org.ajoberstar.grgit.Grgit;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
-
-import javax.inject.Inject;
-import java.io.File;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GitPublishPush extends DefaultTask {
   private final Property<Grgit> grgit;

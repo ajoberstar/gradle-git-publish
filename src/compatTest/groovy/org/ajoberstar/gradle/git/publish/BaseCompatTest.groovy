@@ -183,7 +183,9 @@ plugins {
 gitPublish {
   repoUri = '${remote.repository.rootDir.toURI()}'
   branch = 'gh-pages'
-  contents.from 'src'
+  contents {
+    from 'src'
+  }
 }
 """
 

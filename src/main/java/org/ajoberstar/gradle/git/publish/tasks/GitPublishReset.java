@@ -1,31 +1,26 @@
 package org.ajoberstar.gradle.git.publish.tasks;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.inject.Inject;
+
+import org.ajoberstar.grgit.Grgit;
 import org.ajoberstar.grgit.Ref;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
-
-import javax.inject.Inject;
-
-import org.ajoberstar.grgit.Grgit;
 import org.gradle.api.tasks.util.PatternFilterable;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GitPublishReset extends DefaultTask {
   private final Property<Grgit> grgit;
