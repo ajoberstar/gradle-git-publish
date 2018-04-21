@@ -1,5 +1,5 @@
 plugins {
-  id 'org.ajoberstar.defaults' version '0.11.0-rc.1'
+  id 'org.ajoberstar.defaults' version '0.11.0'
   id 'groovy'
   id 'java-gradle-plugin'
   // TODO remove when Gradle dependency locking is available
