@@ -101,7 +101,7 @@ public class GitPublishPlugin implements Plugin<Project> {
               String originUri = getOriginUri(repo);
               // need to use the URIish to normalize them and ensure we support all Git compatible URI-ishs (URL
               // is too limiting)
-              boolean valid = new URIish(extension.getRepoUri().get()).equals(new URIish(originUri)) && extension.getBranch().get().equals(repo.getBranch().getCurrent().getName());
+              boolean valid = new URIish(extension.getRepoUri().get()).equals(new URIish(originUri)) && extension.getBranch().get().equals(repo.getBranch().current().getName());
               if (!valid) {
                 repo.close();
               }
