@@ -3,6 +3,8 @@ package org.ajoberstar.gradle.git.publish;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import org.ajoberstar.gradle.git.publish.tasks.GitPublishCommit;
 import org.ajoberstar.gradle.git.publish.tasks.GitPublishPush;
 import org.ajoberstar.gradle.git.publish.tasks.GitPublishReset;
@@ -37,9 +39,11 @@ public class GitPublishPlugin implements Plugin<Project> {
 
     extension.getRepoDir().set(project.getLayout().getBuildDirectory().dir("gitPublish"));
 
-    Provider<Grgit> grgitProvider = project.provider(() -> {
+    Supplier<Grgit> grgitSupplier = Suppliers.memoize(() -> {
       return findExistingRepo(project, extension).orElseGet(() -> freshRepo(project, extension));
     });
+
+    Provider<Grgit> grgitProvider = project.provider(grgitSupplier::get);
 
     Task reset = createResetTask(project, extension, grgitProvider);
     Task copy = createCopyTask(project, extension);

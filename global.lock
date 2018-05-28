@@ -40,54 +40,90 @@
         }
     },
     "compile": {
+        "com.google.guava:guava": {
+            "locked": "25.1-jre",
+            "requested": "[25.1-jre,)"
+        },
         "org.ajoberstar:grgit": {
             "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "compileClasspath": {
+        "com.google.guava:guava": {
+            "locked": "25.1-jre",
+            "requested": "[25.1-jre,)"
+        },
         "org.ajoberstar:grgit": {
             "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "default": {
+        "com.google.guava:guava": {
+            "locked": "25.1-jre",
+            "requested": "[25.1-jre,)"
+        },
         "org.ajoberstar:grgit": {
             "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "runtime": {
+        "com.google.guava:guava": {
+            "locked": "25.1-jre",
+            "requested": "[25.1-jre,)"
+        },
         "org.ajoberstar:grgit": {
             "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "runtimeClasspath": {
+        "com.google.guava:guava": {
+            "locked": "25.1-jre",
+            "requested": "[25.1-jre,)"
+        },
         "org.ajoberstar:grgit": {
             "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "testCompile": {
+        "com.google.guava:guava": {
+            "locked": "25.1-jre",
+            "requested": "[25.1-jre,)"
+        },
         "org.ajoberstar:grgit": {
             "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "testCompileClasspath": {
+        "com.google.guava:guava": {
+            "locked": "25.1-jre",
+            "requested": "[25.1-jre,)"
+        },
         "org.ajoberstar:grgit": {
             "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "testRuntime": {
+        "com.google.guava:guava": {
+            "locked": "25.1-jre",
+            "requested": "[25.1-jre,)"
+        },
         "org.ajoberstar:grgit": {
             "locked": "2.2.0",
             "requested": "[2.0.0,)"
         }
     },
     "testRuntimeClasspath": {
+        "com.google.guava:guava": {
+            "locked": "25.1-jre",
+            "requested": "[25.1-jre,)"
+        },
         "org.ajoberstar:grgit": {
             "locked": "2.2.0",
             "requested": "[2.0.0,)"
