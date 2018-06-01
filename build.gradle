@@ -1,15 +1,17 @@
 plugins {
-  id 'org.ajoberstar.defaults' version '0.11.0'
+  id 'org.ajoberstar.defaults' version '0.12.0-rc.2'
   id 'groovy'
   id 'java-gradle-plugin'
-  // TODO remove when Gradle dependency locking is available
-  id 'nebula.dependency-lock' version '5.0.4'
 }
 
 group = 'org.ajoberstar'
 
 repositories {
   jcenter()
+}
+
+dependencyLocking {
+  lockAllConfigurations()
 }
 
 dependencies {
@@ -20,9 +22,8 @@ dependencies {
   compile localGroovy()
 
   // grgit
-  def grgitVersion = '[2.0.0,)'
-  compile "org.ajoberstar:grgit:$grgitVersion"
-  compatTestCompile "org.ajoberstar:grgit:$grgitVersion"
+  compile 'org.ajoberstar:grgit:[2.0.0,)'
+  compatTestCompile 'org.ajoberstar:grgit:[2.0.0,)'
 
   // util
   compile 'com.google.guava:guava:[25.1-jre,)'
@@ -33,6 +34,7 @@ dependencies {
 }
 
 stutter {
+  sparse = true
   includeActiveRc = true
   java(8) {
     compatibleRange '4.3'
