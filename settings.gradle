@@ -1,1 +1,4 @@
 rootProject.name = 'gradle-git-publish'
+
+enableFeaturePreview('STABLE_PUBLISHING')
+enableFeaturePreview('IMPROVED_POM_SUPPORT')
