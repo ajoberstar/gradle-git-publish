@@ -25,9 +25,6 @@ dependencies {
   compile 'org.ajoberstar:grgit:[2.0.0,)'
   compatTestCompile 'org.ajoberstar:grgit:[2.0.0,)'
 
-  // util
-  compile 'com.google.guava:guava:[25.1-jre,)'
-
   // testing
   compatTestCompile gradleTestKit()
   compatTestCompile 'org.spockframework:spock-core:1.1-groovy-2.4'

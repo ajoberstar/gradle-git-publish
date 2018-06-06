@@ -1,15 +1,11 @@
 package org.ajoberstar.gradle.git.publish;
 
-import java.net.URISyntaxException;
 import java.util.Optional;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import org.ajoberstar.gradle.git.publish.tasks.GitPublishCommit;
 import org.ajoberstar.gradle.git.publish.tasks.GitPublishPush;
 import org.ajoberstar.gradle.git.publish.tasks.GitPublishReset;
 import org.ajoberstar.grgit.Grgit;
-import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -39,16 +35,10 @@ public class GitPublishPlugin implements Plugin<Project> {
 
     extension.getRepoDir().set(project.getLayout().getBuildDirectory().dir("gitPublish"));
 
-    Supplier<Grgit> grgitSupplier = Suppliers.memoize(() -> {
-      return findExistingRepo(project, extension).orElseGet(() -> freshRepo(project, extension));
-    });
-
-    Provider<Grgit> grgitProvider = project.provider(grgitSupplier::get);
-
-    Task reset = createResetTask(project, extension, grgitProvider);
+    GitPublishReset reset = createResetTask(project, extension);
     Task copy = createCopyTask(project, extension);
-    Task commit = createCommitTask(project, extension, grgitProvider);
-    Task push = createPushTask(project, extension, grgitProvider);
+    Task commit = createCommitTask(project, extension, reset.getGrgit());
+    Task push = createPushTask(project, extension, reset.getGrgit());
     push.dependsOn(commit);
     commit.dependsOn(copy);
     copy.dependsOn(reset);
@@ -56,21 +46,22 @@ public class GitPublishPlugin implements Plugin<Project> {
     // always close the repo at the end of the build
     project.getGradle().buildFinished(result -> {
       project.getLogger().info("Closing Git publish repo: {}", extension.getRepoDir().get());
-      grgitProvider.get().close();
+      reset.getGrgit().get().close();
     });
   }
 
-  private Task createResetTask(Project project, GitPublishExtension extension, Provider<Grgit> grgitProvider) {
+  private GitPublishReset createResetTask(Project project, GitPublishExtension extension) {
     return project.getTasks().create(RESET_TASK, GitPublishReset.class, task -> {
       task.setGroup("publishing");
       task.setDescription("Prepares a git repo for new content to be generated.");
-      task.getGrgit().set(grgitProvider);
+      task.getRepoDirectory().set(extension.getRepoDir());
+      task.getRepoUri().set(extension.getRepoUri());
       task.getBranch().set(extension.getBranch());
       task.setPreserve(extension.getPreserve());
     });
   }
 
-  private Task createCopyTask(Project project, GitPublishExtension extension) {
+  private Copy createCopyTask(Project project, GitPublishExtension extension) {
     return project.getTasks().create(COPY_TASK, Copy.class, task -> {
       task.setGroup("publishing");
       task.setDescription("Copy contents to be published to git.");
@@ -79,7 +70,7 @@ public class GitPublishPlugin implements Plugin<Project> {
     });
   }
 
-  private Task createCommitTask(Project project, GitPublishExtension extension, Provider<Grgit> grgitProvider) {
+  private GitPublishCommit createCommitTask(Project project, GitPublishExtension extension, Provider<Grgit> grgitProvider) {
     return project.getTasks().create(COMMIT_TASK, GitPublishCommit.class, task -> {
       task.setGroup("publishing");
       task.setDescription("Commits changes to be published to git.");
@@ -88,50 +79,13 @@ public class GitPublishPlugin implements Plugin<Project> {
     });
   }
 
-  private Task createPushTask(Project project, GitPublishExtension extension, Provider<Grgit> grgitProvider) {
+  private GitPublishPush createPushTask(Project project, GitPublishExtension extension, Provider<Grgit> grgitProvider) {
     return project.getTasks().create(PUSH_TASK, GitPublishPush.class, task -> {
       task.setGroup("publishing");
       task.setDescription("Pushes changes to git.");
       task.getGrgit().set(grgitProvider);
       task.getBranch().set(extension.getBranch());
     });
-  }
-
-  private Optional<Grgit> findExistingRepo(Project project, GitPublishExtension extension) {
-    try {
-      return Optional.of(Grgit.open(op -> op.setDir(extension.getRepoDir().get().getAsFile())))
-          .filter(repo -> {
-            try {
-              String originUri = getOriginUri(repo);
-              // need to use the URIish to normalize them and ensure we support all Git compatible URI-ishs (URL
-              // is too limiting)
-              boolean valid = new URIish(extension.getRepoUri().get()).equals(new URIish(originUri)) && extension.getBranch().get().equals(repo.getBranch().current().getName());
-              if (!valid) {
-                repo.close();
-              }
-              return valid;
-            } catch (URISyntaxException e) {
-              throw new RuntimeException("Invalid URI.", e);
-            }
-          });
-    } catch (Exception e) {
-      // missing, invalid, or corrupt repo
-      project.getLogger().debug("Failed to find existing Git publish repository.", e);
-      return Optional.empty();
-    }
-  }
-
-  private Grgit freshRepo(Project project, GitPublishExtension extension) {
-    project.delete(extension.getRepoDir().get().getAsFile());
-
-    Grgit repo = Grgit.init(op -> {
-      op.setDir(extension.getRepoDir().get().getAsFile());
-    });
-    repo.getRemote().add(op -> {
-      op.setName("origin");
-      op.setUrl(extension.getRepoUri().get());
-    });
-    return repo;
   }
 
   private String getOriginUri(Grgit grgit) {
