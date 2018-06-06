@@ -46,7 +46,9 @@ public class GitPublishPlugin implements Plugin<Project> {
     // always close the repo at the end of the build
     project.getGradle().buildFinished(result -> {
       project.getLogger().info("Closing Git publish repo: {}", extension.getRepoDir().get());
-      reset.getGrgit().get().close();
+      if (reset.getGrgit().isPresent()) {
+        reset.getGrgit().get().close();
+      }
     });
   }
 

@@ -7,6 +7,7 @@ import org.ajoberstar.grgit.Grgit
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.testkit.runner.UnexpectedBuildFailure
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
@@ -239,14 +240,32 @@ gitPublish {
     working.branch.list()*.name == ['gh-pages']
   }
 
+  def 'when no git publish tasks are run, build completes successfully'() {
+    given:
+    buildFile << '''\
+plugins {
+  id 'org.ajoberstar.git-publish'
+}
 
-  private BuildResult build() {
+task hello {
+  doLast {
+    println 'Hello!'
+  }
+}
+'''
+    when:
+    build('hello')
+    then:
+    notThrown(UnexpectedBuildFailure)
+  }
+
+  private BuildResult build(String... args = ['gitPublishPush', '--stacktrace']) {
     return GradleRunner.create()
       .withGradleVersion(System.properties['compat.gradle.version'])
       .withPluginClasspath()
       .withProjectDir(projectDir)
       .forwardOutput()
-      .withArguments('gitPublishPush', '--stacktrace')
+      .withArguments(args)
       .build()
   }
 
