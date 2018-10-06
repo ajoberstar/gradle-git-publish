@@ -4,6 +4,9 @@ plugins {
   id 'java-gradle-plugin'
 }
 
+apply from: 'gradle/bintray.gradle'
+apply from: 'gradle/locking.gradle'
+
 group = 'org.ajoberstar'
 
 repositories {
@@ -16,18 +19,18 @@ dependencyLocking {
 
 dependencies {
   // gradle
-  compile gradleApi()
+  implementation gradleApi()
 
   // groovy
-  compile localGroovy()
+  implementation localGroovy()
 
   // grgit
-  compile 'org.ajoberstar:grgit:[2.0.0,)'
-  compatTestCompile 'org.ajoberstar:grgit:[2.0.0,)'
+  implementation 'org.ajoberstar.grgit:grgit-core:latest.release'
+  compatTestImplementation 'org.ajoberstar.grgit:grgit-core:latest.release'
 
   // testing
-  compatTestCompile gradleTestKit()
-  compatTestCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
+  compatTestImplementation gradleTestKit()
+  compatTestImplementation 'org.spockframework:spock-core:1.1-groovy-2.4'
 }
 
 stutter {
@@ -35,6 +38,9 @@ stutter {
   includeActiveRc = true
   java(8) {
     compatibleRange '4.3'
+  }
+  java(11) {
+    compatibleRange '5.0'
   }
 }
 

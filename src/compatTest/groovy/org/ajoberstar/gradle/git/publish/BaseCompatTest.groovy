@@ -141,6 +141,40 @@ gitPublish {
     !remoteFile('index.md').exists()
   }
 
+  def 'can publish to multiple subdirectories'() {
+    given:
+    projectFile('src1/content1.txt') << 'published content1 here'
+    projectFile('src2/content2.txt') << 'published content2 here'
+
+    buildFile << """
+plugins {
+  id 'org.ajoberstar.git-publish'
+}
+
+gitPublish {
+  repoUri = '${remote.repository.rootDir.toURI()}'
+  branch = 'gh-pages'
+  contents {
+    from('src1') {
+      into 'dest1'
+    }
+    from('src2') {
+      into 'dest2'
+    }
+  }
+}
+"""
+    when:
+    def result = build()
+    and:
+    remote.checkout(branch: 'gh-pages')
+    then:
+    result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
+    remote.log().size() == 2
+    remoteFile('dest1/content1.txt').text == 'published content1 here'
+    remoteFile('dest2/content2.txt').text == 'published content2 here'
+  }
+
   def 'skips push and commit if no changes'() {
     given:
     projectFile('src/index.md') << '# This Page is Awesome!'
