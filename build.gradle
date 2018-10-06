@@ -44,19 +44,6 @@ stutter {
   }
 }
 
-publishing {
-  repositories {
-    maven {
-      name = 'bintray'
-      url = 'https://api.bintray.com/maven/ajoberstar/maven/gradle-git-publish/;publish=1'
-      credentials {
-        username = System.env['BINTRAY_USER']
-        password = System.env['BINTRAY_KEY']
-      }
-    }
-  }
-}
-
 pluginBundle {
   website = 'https://github.com/ajoberstar/gradle-git-publish'
   vcsUrl = 'https://github.com/ajoberstar/gradle-git-publish.git'
