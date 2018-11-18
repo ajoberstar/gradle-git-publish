@@ -1,6 +1,7 @@
 plugins {
   id 'org.ajoberstar.defaults' version '0.12.0'
   id 'groovy'
+  id 'java-library'
   id 'java-gradle-plugin'
 }
 
@@ -13,19 +14,15 @@ repositories {
   jcenter()
 }
 
-dependencyLocking {
-  lockAllConfigurations()
-}
-
 dependencies {
   // gradle
-  implementation gradleApi()
+  compileOnly gradleApi()
 
   // groovy
-  implementation localGroovy()
+  compileOnly localGroovy()
 
   // grgit
-  implementation 'org.ajoberstar.grgit:grgit-core:latest.release'
+  api 'org.ajoberstar.grgit:grgit-core:latest.release'
   compatTestImplementation 'org.ajoberstar.grgit:grgit-core:latest.release'
 
   // testing
