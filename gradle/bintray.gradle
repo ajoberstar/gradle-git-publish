@@ -4,7 +4,7 @@ allprojects {
       repositories {
         maven {
           name = 'bintray'
-          url = 'https://api.bintray.com/maven/ajoberstar/maven/grgit/;publish=1'
+          url = 'https://api.bintray.com/maven/ajoberstar/maven/gradle-git-publish/;publish=1'
           credentials {
             username = System.env['BINTRAY_USER']
             password = System.env['BINTRAY_KEY']
