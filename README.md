@@ -52,7 +52,7 @@ apply plugin: 'org.ajoberstar.git-publish'
 ```groovy
 gitPublish {
     // where to publish to (repo must exist)
-    repoUri = 'git@github.com/ajoberstar/test-repo.git'
+    repoUri = 'git@github.com:ajoberstar/test-repo.git'
     // (or 'https://github.com/ajoberstar/test-repo.git', depending on authentication)
 
     // branch will be created if it doesn't exist
@@ -115,6 +115,8 @@ The following table should help translate settings you used in `org.ajoberstar.g
 | `deleteExistingFiles`       | `preserve`                  | If previously `true` (the default), do nothing. If previously `false`, `preserve { include '**/*' }`
 | `commitMessage`             | `commitMessage`             | Just copy from the old value. |
 | `credentials`               | env variable or system prop | `GRGIT_USER` environment variable or `org.ajoberstar.grgit.auth.username` system property. |
+
+Use the `gitPublishPush` task as replacement for the `publishGhPages` task.
 
 ## Questions, Bugs, and Features
 
