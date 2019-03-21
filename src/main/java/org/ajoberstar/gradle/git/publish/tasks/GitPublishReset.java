@@ -39,7 +39,7 @@ public class GitPublishReset extends DefaultTask {
   @Inject
   public GitPublishReset(ProjectLayout layout, ObjectFactory objectFactory) {
     this.grgit = objectFactory.property(Grgit.class);
-    this.repoDirectory = layout.directoryProperty();
+    this.repoDirectory = DirectoryPropertyFactory.create(layout, objectFactory);
     this.repoUri = objectFactory.property(String.class);
     this.branch = objectFactory.property(String.class);
 

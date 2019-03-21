@@ -1,6 +1,7 @@
 package org.ajoberstar.gradle.git.publish;
 
 
+import org.ajoberstar.gradle.git.publish.tasks.DirectoryPropertyFactory;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
@@ -18,7 +19,7 @@ public class GitPublishExtension {
   private final PatternFilterable preserve;
 
   public GitPublishExtension(Project project) {
-    this.repoDir = project.getLayout().directoryProperty();
+    this.repoDir = DirectoryPropertyFactory.create(project);
     this.repoUri = project.getObjects().property(String.class);
     this.branch = project.getObjects().property(String.class);
     this.commitMessage = project.getObjects().property(String.class);
