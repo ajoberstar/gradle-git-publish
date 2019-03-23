@@ -1,5 +1,6 @@
 package org.ajoberstar.gradle.git.publish
 
+import spock.lang.IgnoreIf
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -291,6 +292,34 @@ task hello {
     build('hello')
     then:
     notThrown(UnexpectedBuildFailure)
+  }
+
+  @IgnoreIf({ Integer.parseInt(System.properties['compat.gradle.version'].split('\\.')[0]) < 5 })
+  def 'commit message can be changed'() {
+     given:
+    projectFile('src/content.txt') << 'published content here'
+
+    buildFile << """
+plugins {
+  id 'org.ajoberstar.git-publish'
+}
+
+gitPublish {
+  repoUri = '${remote.repository.rootDir.toURI()}'
+  branch = 'gh-pages'
+  contents.from 'src'
+  commitMessage = "Deploy docs to gh-pages (\${project.name})"
+}
+"""
+    when:
+    def result = build()
+    and:
+    remote.checkout(branch: 'gh-pages')
+    then:
+    result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
+    remote.log().size() == 2
+    remoteFile('content.txt').text == 'published content here'
+    remote.head().fullMessage == "Deploy docs to gh-pages (${projectFile('.').canonicalFile.name})"
   }
 
   private BuildResult build(String... args = ['gitPublishPush', '--stacktrace']) {
