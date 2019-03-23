@@ -27,10 +27,10 @@ public class GitPublishPlugin implements Plugin<Project> {
     // if using the grgit plugin, default to the repo's origin
     project.getPluginManager().withPlugin("org.ajoberstar.grgit", plugin -> {
       // TODO should this be based on tracking branch instead of assuming origin?
-      String repoUri = Optional.ofNullable((Grgit) project.findProperty("grgit"))
-          .map(this::getOriginUri)
-          .orElse(null);
-      extension.getRepoUri().set(repoUri);
+      Optional.ofNullable((Grgit) project.findProperty("grgit")).ifPresent(grgit -> {
+        extension.getRepoUri().set(getOriginUri(grgit));
+        extension.getReferenceRepoUri().set(grgit.getRepository().getRootDir().toURI().toString());
+      });
     });
 
     extension.getRepoDir().set(project.getLayout().getBuildDirectory().dir("gitPublish"));
@@ -58,6 +58,7 @@ public class GitPublishPlugin implements Plugin<Project> {
       task.setDescription("Prepares a git repo for new content to be generated.");
       task.getRepoDirectory().set(extension.getRepoDir());
       task.getRepoUri().set(extension.getRepoUri());
+      task.getReferenceRepoUri().set(extension.getReferenceRepoUri());
       task.getBranch().set(extension.getBranch());
       task.setPreserve(extension.getPreserve());
     });

@@ -47,13 +47,16 @@ apply plugin: 'org.ajoberstar.git-publish'
 
 ### Configuration
 
-**NOTE:** In general, there are no default values here. The main exception is that the `repoUri` will be automatically set if you use the `org.ajoberstar.grgit` plugin to your project's origin repo URI.
+**NOTE:** In general, there are no default values here. The main exception is that the `repoUri` and `referenceRepoUri` will be automatically set if you use the `org.ajoberstar.grgit` plugin to your project's origin repo URI.
 
 ```groovy
 gitPublish {
     // where to publish to (repo must exist)
     repoUri = 'git@github.com:ajoberstar/test-repo.git'
     // (or 'https://github.com/ajoberstar/test-repo.git', depending on authentication)
+
+    // where to fetch from prior to fetching from the remote (i.e. a local repo to save time)
+    referenceRepoUri = 'file:///home/human/projects/test-repo/'
 
     // branch will be created if it doesn't exist
     branch = 'gh-pages'
@@ -84,10 +87,10 @@ gitPublish {
 
 Generally, you'll just run `gitPublishPush`, but there is a series of four tasks that happen in order.
 
-* `gitPublishReset` - Clones/updates the working repo to the latest commit on the `repoUri` `branch` head. All files not included by the `preserve` filters will be deleted and staged.
-* `gitPublishCopy` - Copies any files defined in the `contents` CopySpec into the working repo.
-* `gitPublishCommit` - Commits all changes to the working repo.
-* `gitPublishPush` - If changes were committed, pushed them to the `repoUri`.
+- `gitPublishReset` - Clones/updates the working repo to the latest commit on the `repoUri` `branch` head. All files not included by the `preserve` filters will be deleted and staged.
+- `gitPublishCopy` - Copies any files defined in the `contents` CopySpec into the working repo.
+- `gitPublishCommit` - Commits all changes to the working repo.
+- `gitPublishPush` - If changes were committed, pushed them to the `repoUri`.
 
 ### Avoiding Extra Copy
 
@@ -106,15 +109,15 @@ gitPublishCommit.dependsOn jbakeTask
 
 The following table should help translate settings you used in `org.ajoberstar.github-pages` to this plugin's format. Additionally reference the Configuration section above for more information on the current feature set.
 
-| org.ajoberstar.github-pages | org.ajoberstar.git-publish  | Comment |
-|-----------------------------|-----------------------------|---------|
-| `repoUri`                   | `repoUri`                   | Used to allow any Object (which would be lazily unpacked to a String). Now requires a String. |
-| `targetBranch`              | `branch`                    | The old plugin defaulted to `gh-pages`, the new one has no default. This must be a String. |
-| `workingPath`               | `repoDir`                   | Used to allow any Object and called `file()` on it for you. Now expects a File. |
-| `pages`                     | `contents`                  | Just a name change. |
-| `deleteExistingFiles`       | `preserve`                  | If previously `true` (the default), do nothing. If previously `false`, `preserve { include '**/*' }`
-| `commitMessage`             | `commitMessage`             | Just copy from the old value. |
-| `credentials`               | env variable or system prop | `GRGIT_USER` environment variable or `org.ajoberstar.grgit.auth.username` system property. |
+| org.ajoberstar.github-pages | org.ajoberstar.git-publish  | Comment                                                                                              |
+| --------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `repoUri`                   | `repoUri`                   | Used to allow any Object (which would be lazily unpacked to a String). Now requires a String.        |
+| `targetBranch`              | `branch`                    | The old plugin defaulted to `gh-pages`, the new one has no default. This must be a String.           |
+| `workingPath`               | `repoDir`                   | Used to allow any Object and called `file()` on it for you. Now expects a File.                      |
+| `pages`                     | `contents`                  | Just a name change.                                                                                  |
+| `deleteExistingFiles`       | `preserve`                  | If previously `true` (the default), do nothing. If previously `false`, `preserve { include '**/*' }` |
+| `commitMessage`             | `commitMessage`             | Just copy from the old value.                                                                        |
+| `credentials`               | env variable or system prop | `GRGIT_USER` environment variable or `org.ajoberstar.grgit.auth.username` system property.           |
 
 Use the `gitPublishPush` task as replacement for the `publishGhPages` task.
 
