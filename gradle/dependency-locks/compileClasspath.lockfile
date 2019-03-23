@@ -4,7 +4,7 @@
 com.googlecode.javaewah:JavaEWAH:1.1.6
 com.jcraft:jsch:0.1.54
 com.jcraft:jzlib:1.1.1
-org.ajoberstar.grgit:grgit-core:3.1.0
+org.ajoberstar.grgit:grgit-core:3.1.1
 org.bouncycastle:bcpg-jdk15on:1.60
 org.bouncycastle:bcpkix-jdk15on:1.60
 org.bouncycastle:bcprov-jdk15on:1.60
