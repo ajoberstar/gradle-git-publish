@@ -32,7 +32,7 @@ public class GitPublishExtension {
 
     this.contents = project.copySpec();
     this.preserve = new PatternSet();
-    this.preserve.include(".git");
+    this.preserve.include(".git/**/*");
   }
 
   public DirectoryProperty getRepoDir() {
