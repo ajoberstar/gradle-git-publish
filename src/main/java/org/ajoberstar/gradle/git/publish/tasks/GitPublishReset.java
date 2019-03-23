@@ -33,6 +33,7 @@ public class GitPublishReset extends DefaultTask {
   private final Property<Grgit> grgit;
   private final DirectoryProperty repoDirectory;
   private final Property<String> repoUri;
+  private final Property<String> referenceRepoUri;
   private final Property<String> branch;
   private PatternFilterable preserve;
 
@@ -41,6 +42,7 @@ public class GitPublishReset extends DefaultTask {
     this.grgit = objectFactory.property(Grgit.class);
     this.repoDirectory = layout.directoryProperty();
     this.repoUri = objectFactory.property(String.class);
+    this.referenceRepoUri = objectFactory.property(String.class);
     this.branch = objectFactory.property(String.class);
 
     // always consider this task out of date
@@ -50,6 +52,11 @@ public class GitPublishReset extends DefaultTask {
   @Internal
   public Property<Grgit> getGrgit() {
     return grgit;
+  }
+
+  @Internal
+  public Property<String> getReferenceRepoUri() {
+    return referenceRepoUri;
   }
 
   @OutputDirectory
@@ -83,6 +90,24 @@ public class GitPublishReset extends DefaultTask {
 
     String pubBranch = getBranch().get();
 
+    if (referenceRepoUri.isPresent()) {
+      Map<Ref, String> referenceBranches = git.lsremote(op -> {
+        op.setRemote("reference");
+        op.setHeads(true);
+      });
+
+      boolean referenceBranchExists = referenceBranches.keySet().stream()
+          .anyMatch(ref -> ref.getFullName().equals("refs/heads/" + pubBranch));
+
+      if (referenceBranchExists) {
+        getLogger().info("Fetching from reference repo: " + referenceRepoUri.get());
+        git.fetch(op -> {
+          op.setRefSpecs(Arrays.asList(String.format("+refs/heads/%s:refs/remotes/reference/%s", pubBranch, pubBranch)));
+          op.setTagMode("none");
+        });
+      }
+    }
+
     Map<Ref, String> remoteBranches = git.lsremote(op -> {
       op.setRemote("origin");
       op.setHeads(true);
@@ -94,6 +119,7 @@ public class GitPublishReset extends DefaultTask {
     if (remoteBranchExists) {
       // fetch only the existing pages branch
       git.fetch(op -> {
+        getLogger().info("Fetching from remote repo: " + repoUri.get());
         op.setRefSpecs(Arrays.asList(String.format("+refs/heads/%s:refs/remotes/origin/%s", pubBranch, pubBranch)));
         op.setTagMode("none");
       });
@@ -155,18 +181,13 @@ public class GitPublishReset extends DefaultTask {
     try {
       return Optional.of(Grgit.open(op -> op.setDir(repoDirectory.get().getAsFile())))
           .filter(repo -> {
-            try {
-              String originUri = getOriginUri(repo);
-              // need to use the URIish to normalize them and ensure we support all Git compatible URI-ishs (URL
-              // is too limiting)
-              boolean valid = new URIish(repoUri.get()).equals(new URIish(originUri)) && branch.get().equals(repo.getBranch().current().getName());
-              if (!valid) {
-                repo.close();
-              }
-              return valid;
-            } catch (URISyntaxException e) {
-              throw new RuntimeException("Invalid URI.", e);
+            boolean valid = isRemoteUriMatch(repo, "origin", repoUri.get())
+                && (!referenceRepoUri.isPresent() || isRemoteUriMatch(repo, "reference", referenceRepoUri.get()))
+                && branch.get().equals(repo.getBranch().current().getName());
+            if (!valid) {
+              repo.close();
             }
+            return valid;
           });
     } catch (Exception e) {
       // missing, invalid, or corrupt repo
@@ -185,14 +206,28 @@ public class GitPublishReset extends DefaultTask {
       op.setName("origin");
       op.setUrl(repoUri.get());
     });
+    if (referenceRepoUri.isPresent()) {
+      repo.getRemote().add(op -> {
+        op.setName("reference");
+        op.setUrl(referenceRepoUri.get());
+      });
+    }
     return repo;
   }
 
-  private String getOriginUri(Grgit grgit) {
-    return grgit.getRemote().list().stream()
-        .filter(remote -> remote.getName().equals("origin"))
-        .map(remote -> remote.getUrl())
-        .findAny()
-        .orElse(null);
+  private boolean isRemoteUriMatch(Grgit grgit, String remoteName, String remoteUri) {
+    try {
+      String currentRemoteUri = grgit.getRemote().list().stream()
+          .filter(remote -> remote.getName().equals(remoteName))
+          .map(remote -> remote.getUrl())
+          .findAny()
+          .orElse(null);
+
+      // need to use the URIish to normalize them and ensure we support all Git compatible URI-ishs (URL
+      // is too limiting)
+      return new URIish(remoteUri).equals(new URIish(currentRemoteUri));
+    } catch (URISyntaxException e) {
+      throw new RuntimeException("Invalid URI.", e);
+    }
   }
 }

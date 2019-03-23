@@ -89,6 +89,44 @@ gitPublish {
     remoteFile('content.txt').text == 'published content here'
   }
 
+  def 'reset pulls from reference repo if available before pulling from remote'() {
+    given:
+    def referenceDir = tempDir.newFolder('reference')
+    def reference = Grgit.clone(dir: referenceDir, uri: remote.repository.rootDir.toURI())
+    reference.checkout(branch: 'gh-pages', createBranch: true)
+    // add a file that will get fetched but not pushed
+    def refFile = new File(reference.repository.rootDir, 'src/newFile.txt')
+    refFile.parentFile.mkdirs()
+    refFile.text = 'Some content'
+    reference.add(patterns: ['.'])
+    reference.commit(message: 'This wont get pushed')
+
+    projectFile('src/content.txt') << 'published content here'
+
+    buildFile << """
+plugins {
+  id 'org.ajoberstar.git-publish'
+}
+
+gitPublish {
+  repoUri = '${remote.repository.rootDir.toURI()}'
+  referenceRepoUri = '${reference.repository.rootDir.toURI()}'
+  branch = 'gh-pages'
+  contents.from 'src'
+}
+"""
+    when:
+    def result = build()
+    and:
+    remote.checkout(branch: 'gh-pages')
+    then:
+    result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
+    result.output.contains('Fetching from reference repo')
+    remote.log().size() == 2
+    remoteFile('content.txt').text == 'published content here'
+    !remoteFile('newFile.txt').exists()
+  }
+
   def 'can customize working directory'() {
     given:
     projectFile('src/content.txt') << 'published content here'
@@ -322,7 +360,7 @@ gitPublish {
     remote.head().fullMessage == "Deploy docs to gh-pages (${projectFile('.').canonicalFile.name})"
   }
 
-  private BuildResult build(String... args = ['gitPublishPush', '--stacktrace']) {
+  private BuildResult build(String... args = ['gitPublishPush', '--stacktrace', '--info']) {
     return GradleRunner.create()
       .withGradleVersion(System.properties['compat.gradle.version'])
       .withPluginClasspath()
