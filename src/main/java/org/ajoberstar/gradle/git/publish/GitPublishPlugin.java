@@ -10,7 +10,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Copy;
 
 public class GitPublishPlugin implements Plugin<Project> {
