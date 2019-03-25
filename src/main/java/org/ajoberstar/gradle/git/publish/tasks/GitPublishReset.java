@@ -28,6 +28,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.util.GradleVersion;
 
 public class GitPublishReset extends DefaultTask {
   private final Property<Grgit> grgit;
@@ -40,7 +41,11 @@ public class GitPublishReset extends DefaultTask {
   @Inject
   public GitPublishReset(ProjectLayout layout, ObjectFactory objectFactory) {
     this.grgit = objectFactory.property(Grgit.class);
-    this.repoDirectory = layout.directoryProperty();
+    if (GradleVersion.current().compareTo(GradleVersion.version("5.0")) >= 0) {
+      this.repoDirectory = getProject().getObjects().directoryProperty();
+    } else {
+      this.repoDirectory = getProject().getLayout().directoryProperty();
+    }
     this.repoUri = objectFactory.property(String.class);
     this.referenceRepoUri = objectFactory.property(String.class);
     this.branch = objectFactory.property(String.class);
