@@ -1,7 +1,7 @@
 # gradle-git-publish
 
 [![Download](https://api.bintray.com/packages/ajoberstar/maven/gradle-git-publish/images/download.svg)](https://bintray.com/ajoberstar/maven/gradle-git-publish/_latestVersion)
-[![CircleCI](https://circleci.com/gh/ajoberstar/gradle-git-publish.svg?style=svg)](https://circleci.com/gh/ajoberstar/gradle-git-publish)
+![](https://github.com/ajoberstar/gradle-git-publish/workflows/.github/workflows/build.yaml/badge.svg)
 
 ## Why do you care?
 
