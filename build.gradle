@@ -1,5 +1,6 @@
 plugins {
   id 'org.ajoberstar.defaults' version '0.14.2'
+  id 'org.ajoberstar.stutter' version '0.5.1'
   id 'groovy'
   id 'java-library'
   id 'java-gradle-plugin'
@@ -32,12 +33,14 @@ dependencies {
 
 stutter {
   sparse = true
-  includeActiveRc = true
   java(8) {
     compatibleRange '4.3'
   }
   java(11) {
     compatibleRange '5.0'
+  }
+  java(13) {
+    compatibleRange '6.0'
   }
 }
 
