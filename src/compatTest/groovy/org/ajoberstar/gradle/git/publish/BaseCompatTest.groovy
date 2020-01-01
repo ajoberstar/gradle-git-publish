@@ -360,6 +360,29 @@ gitPublish {
     remote.head().fullMessage == "Deploy docs to gh-pages (${projectFile('.').canonicalFile.name})"
   }
 
+  def 'can deactivate signing'() {
+    given:
+    projectFile('src/content.txt') << 'published content here'
+
+    buildFile << """
+plugins {
+  id 'org.ajoberstar.git-publish'
+}
+
+gitPublish {
+  repoUri = '${remote.repository.rootDir.toURI()}'
+  branch = 'gh-pages'
+  contents.from 'src'
+  sign = false
+}
+"""
+    when:
+    def result = build()
+
+    then:
+    result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
+  }
+
   private BuildResult build(String... args = ['gitPublishPush', '--stacktrace', '--info']) {
     return GradleRunner.create()
       .withGradleVersion(System.properties['compat.gradle.version'])

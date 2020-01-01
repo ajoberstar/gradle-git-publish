@@ -16,6 +16,7 @@ public class GitPublishExtension {
   private final Property<String> referenceRepoUri;
   private final Property<String> branch;
   private final Property<String> commitMessage;
+  private final Property<Boolean> sign;
   private final CopySpec contents;
   private final PatternFilterable preserve;
 
@@ -29,6 +30,7 @@ public class GitPublishExtension {
     this.referenceRepoUri = project.getObjects().property(String.class);
     this.branch = project.getObjects().property(String.class);
     this.commitMessage = project.getObjects().property(String.class);
+    this.sign = project.getObjects().property(Boolean.class);
 
     this.contents = project.copySpec();
     this.preserve = new PatternSet();
@@ -53,6 +55,10 @@ public class GitPublishExtension {
 
   public Property<String> getCommitMessage() {
     return commitMessage;
+  }
+
+  public Property<Boolean> getSign() {
+    return sign;
   }
 
   public CopySpec getContents() {
