@@ -2,8 +2,6 @@ package org.ajoberstar.gradle.git.publish
 
 import spock.lang.IgnoreIf
 import spock.lang.Specification
-import spock.lang.Unroll
-
 import org.ajoberstar.grgit.Grgit
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.BuildResult
@@ -360,8 +358,33 @@ gitPublish {
     remote.head().fullMessage == "Deploy docs to gh-pages (${projectFile('.').canonicalFile.name})"
   }
 
+  def 'can activate signing'() {
+    given:
+    gpgSign = false
+    projectFile('src/content.txt') << 'published content here'
+
+    buildFile << """
+plugins {
+  id 'org.ajoberstar.git-publish'
+}
+
+gitPublish {
+  repoUri = '${remote.repository.rootDir.toURI()}'
+  branch = 'gh-pages'
+  contents.from 'src'
+  sign = true
+}
+"""
+    when:
+    def result = buildAndFail()
+
+    then:
+    result.output.contains("org.eclipse.jgit.api.errors.JGitInternalException")
+  }
+
   def 'can deactivate signing'() {
     given:
+    gpgSign = true
     projectFile('src/content.txt') << 'published content here'
 
     buildFile << """
@@ -384,13 +407,20 @@ gitPublish {
   }
 
   private BuildResult build(String... args = ['gitPublishPush', '--stacktrace', '--info']) {
+    return runner(args).build()
+  }
+
+  private BuildResult buildAndFail(String... args = ['gitPublishPush', '--stacktrace', '--info']) {
+    return runner(args).buildAndFail()
+  }
+
+  private GradleRunner runner(String... args) {
     return GradleRunner.create()
       .withGradleVersion(System.properties['compat.gradle.version'])
       .withPluginClasspath()
       .withProjectDir(projectDir)
       .forwardOutput()
       .withArguments(args)
-      .build()
   }
 
   private File remoteFile(String path) {
@@ -403,5 +433,11 @@ gitPublish {
     File file = new File(projectDir, path)
     file.parentFile.mkdirs()
     return file
+  }
+
+  private void setGpgSign(boolean sign) {
+    def config = remote.repository.jgit.repo.config
+    config.setBoolean('commit', null, 'gpgSign', sign)
+    config.save()
   }
 }
