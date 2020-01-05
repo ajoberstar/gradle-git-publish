@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import org.ajoberstar.grgit.Grgit;
-import org.ajoberstar.grgit.operation.CommitOp;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -60,15 +59,14 @@ public class GitPublishCommit extends DefaultTask {
     if (git.status().isClean()) {
       setDidWork(false);
     } else {
-      git.commit(this::commit);
+      git.commit(op -> {
+        op.setMessage(getMessage().get());
+        if (getSign().isPresent()) {
+          op.setSign(getSign().get());
+        }
+      });
       setDidWork(true);
     }
   }
 
-  private void commit(CommitOp op) {
-    op.setMessage(getMessage().get());
-    if (getSign().isPresent()) {
-      op.setSign(getSign().get());
-    }
-  }
 }
