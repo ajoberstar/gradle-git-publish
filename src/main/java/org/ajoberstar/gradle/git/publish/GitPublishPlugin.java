@@ -79,6 +79,7 @@ public class GitPublishPlugin implements Plugin<Project> {
       task.setDescription("Commits changes to be published to git.");
       task.getGrgit().set(grgitProvider);
       task.getMessage().set(extension.getCommitMessage());
+      task.getSign().set(extension.getSign());
     });
   }
 
