@@ -8,7 +8,6 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.util.GradleVersion;
 
 public class GitPublishExtension {
   private final DirectoryProperty repoDir;
@@ -21,11 +20,7 @@ public class GitPublishExtension {
   private final PatternFilterable preserve;
 
   public GitPublishExtension(Project project) {
-    if (GradleVersion.current().compareTo(GradleVersion.version("5.0")) >= 0) {
-      this.repoDir = project.getObjects().directoryProperty();
-    } else {
-      this.repoDir = project.getLayout().directoryProperty();
-    }
+    this.repoDir = project.getObjects().directoryProperty();
     this.repoUri = project.getObjects().property(String.class);
     this.referenceRepoUri = project.getObjects().property(String.class);
     this.branch = project.getObjects().property(String.class);
