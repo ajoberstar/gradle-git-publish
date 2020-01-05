@@ -360,7 +360,10 @@ gitPublish {
 
   def 'can activate signing'() {
     given:
-    gpgSign = false
+    def config = remote.repository.jgit.repo.config
+    config.setBoolean('commit', null, 'gpgSign', false)
+    config.save()
+
     projectFile('src/content.txt') << 'published content here'
 
     buildFile << """
@@ -384,7 +387,10 @@ gitPublish {
 
   def 'can deactivate signing'() {
     given:
-    gpgSign = true
+    def config = remote.repository.jgit.repo.config
+    config.setBoolean('commit', null, 'gpgSign', true)
+    config.save()
+
     projectFile('src/content.txt') << 'published content here'
 
     buildFile << """
@@ -433,11 +439,5 @@ gitPublish {
     File file = new File(projectDir, path)
     file.parentFile.mkdirs()
     return file
-  }
-
-  private void setGpgSign(boolean sign) {
-    def config = remote.repository.jgit.repo.config
-    config.setBoolean('commit', null, 'gpgSign', sign)
-    config.save()
   }
 }
