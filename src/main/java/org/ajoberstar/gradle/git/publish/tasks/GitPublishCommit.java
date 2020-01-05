@@ -39,6 +39,7 @@ public class GitPublishCommit extends DefaultTask {
   }
 
   @Input
+  @Optional
   public Property<Boolean> getSign() {
     return sign;
   }
