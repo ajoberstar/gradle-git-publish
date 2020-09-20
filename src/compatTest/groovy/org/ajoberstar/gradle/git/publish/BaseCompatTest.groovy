@@ -382,7 +382,7 @@ gitPublish {
     def result = buildAndFail()
 
     then:
-    result.output.contains("org.eclipse.jgit.api.errors.JGitInternalException")
+    result.output.contains("org.eclipse.jgit.api.errors.ServiceUnavailableException")
   }
 
   def 'can deactivate signing'() {
