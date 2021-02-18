@@ -1,6 +1,5 @@
 # gradle-git-publish
 
-[![Download](https://api.bintray.com/packages/ajoberstar/maven/gradle-git-publish/images/download.svg)](https://bintray.com/ajoberstar/maven/gradle-git-publish/_latestVersion)
 ![](https://github.com/ajoberstar/gradle-git-publish/workflows/.github/workflows/build.yaml/badge.svg)
 
 ## Project News
