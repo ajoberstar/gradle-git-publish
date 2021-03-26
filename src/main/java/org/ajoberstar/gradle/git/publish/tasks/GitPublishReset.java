@@ -24,6 +24,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.util.GradleVersion;
 
 public class GitPublishReset extends DefaultTask {
   private final Property<Grgit> grgit;
@@ -32,18 +33,16 @@ public class GitPublishReset extends DefaultTask {
   private final Property<String> referenceRepoUri;
   private final Property<String> branch;
   private ObjectFactory objectFactory;
-  private FileSystemOperations fs;
   private PatternFilterable preserve;
 
   @Inject
-  public GitPublishReset(ObjectFactory objectFactory, FileSystemOperations fs) {
+  public GitPublishReset(ObjectFactory objectFactory) {
     this.grgit = objectFactory.property(Grgit.class);
     this.repoDirectory = objectFactory.directoryProperty();
     this.repoUri = objectFactory.property(String.class);
     this.referenceRepoUri = objectFactory.property(String.class);
     this.branch = objectFactory.property(String.class);
     this.objectFactory = objectFactory;
-    this.fs = fs;
 
     // always consider this task out of date
     this.getOutputs().upToDateWhen(t -> false);
@@ -85,8 +84,7 @@ public class GitPublishReset extends DefaultTask {
 
   @TaskAction
   public void reset() {
-    Grgit git = findExistingRepo().orElseGet(() -> freshRepo());
-    grgit.set(git);
+    Grgit git = grgit.get();
 
     String pubBranch = getBranch().get();
 
@@ -151,7 +149,7 @@ public class GitPublishReset extends DefaultTask {
     }
 
     // clean up unwanted files
-    FileTree repoTree = objectFactory.fileTree().from(git.getRepository().getRootDir());
+    FileTree repoTree = getRepoTree(git);
     FileTree preservedTree = repoTree.matching(getPreserve());
     FileTree unwantedTree = repoTree.minus(preservedTree).getAsFileTree();
     unwantedTree.visit(new FileVisitor() {
@@ -177,57 +175,11 @@ public class GitPublishReset extends DefaultTask {
     });
   }
 
-  private Optional<Grgit> findExistingRepo() {
-    try {
-      return Optional.of(Grgit.open(op -> op.setDir(repoDirectory.get().getAsFile())))
-          .filter(repo -> {
-            boolean valid = isRemoteUriMatch(repo, "origin", repoUri.get())
-                && (!referenceRepoUri.isPresent() || isRemoteUriMatch(repo, "reference", referenceRepoUri.get()))
-                && branch.get().equals(repo.getBranch().current().getName());
-            if (!valid) {
-              repo.close();
-            }
-            return valid;
-          });
-    } catch (Exception e) {
-      // missing, invalid, or corrupt repo
-      getLogger().debug("Failed to find existing Git publish repository.", e);
-      return Optional.empty();
-    }
-  }
-
-  private Grgit freshRepo() {
-    fs.delete(spec -> spec.delete(repoDirectory.get().getAsFile()));
-
-    Grgit repo = Grgit.init(op -> {
-      op.setDir(repoDirectory.get().getAsFile());
-    });
-    repo.getRemote().add(op -> {
-      op.setName("origin");
-      op.setUrl(repoUri.get());
-    });
-    if (referenceRepoUri.isPresent()) {
-      repo.getRemote().add(op -> {
-        op.setName("reference");
-        op.setUrl(referenceRepoUri.get());
-      });
-    }
-    return repo;
-  }
-
-  private boolean isRemoteUriMatch(Grgit grgit, String remoteName, String remoteUri) {
-    try {
-      String currentRemoteUri = grgit.getRemote().list().stream()
-          .filter(remote -> remote.getName().equals(remoteName))
-          .map(remote -> remote.getUrl())
-          .findAny()
-          .orElse(null);
-
-      // need to use the URIish to normalize them and ensure we support all Git compatible URI-ishs (URL
-      // is too limiting)
-      return new URIish(remoteUri).equals(new URIish(currentRemoteUri));
-    } catch (URISyntaxException e) {
-      throw new RuntimeException("Invalid URI.", e);
+  private FileTree getRepoTree(Grgit git) {
+    if (GradleVersion.current().compareTo(GradleVersion.version("6.0")) >= 0) {
+      return objectFactory.fileTree().from(git.getRepository().getRootDir());
+    } else {
+      return getProject().fileTree(git.getRepository().getRootDir());
     }
   }
 }

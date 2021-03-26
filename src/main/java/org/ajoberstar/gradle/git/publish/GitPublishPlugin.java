@@ -1,7 +1,5 @@
 package org.ajoberstar.gradle.git.publish;
 
-import java.util.Optional;
-
 import org.ajoberstar.gradle.git.publish.tasks.GitPublishCommit;
 import org.ajoberstar.gradle.git.publish.tasks.GitPublishPush;
 import org.ajoberstar.gradle.git.publish.tasks.GitPublishReset;
@@ -11,6 +9,8 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Copy;
+
+import java.util.Optional;
 
 public class GitPublishPlugin implements Plugin<Project> {
   static final String RESET_TASK = "gitPublishReset";
@@ -35,24 +35,18 @@ public class GitPublishPlugin implements Plugin<Project> {
 
     extension.getRepoDir().set(project.getLayout().getBuildDirectory().dir("gitPublish"));
 
-    GitPublishReset reset = createResetTask(project, extension);
+    Provider<Grgit> grgit = GrgitProviderFactory.createGrgit(project, extension);
+
+    Task reset = createResetTask(project, extension, grgit);
     Task copy = createCopyTask(project, extension);
-    Task commit = createCommitTask(project, extension, reset.getGrgit());
-    Task push = createPushTask(project, extension, reset.getGrgit());
+    Task commit = createCommitTask(project, extension, grgit);
+    Task push = createPushTask(project, extension, grgit);
     push.dependsOn(commit);
     commit.dependsOn(copy);
     copy.dependsOn(reset);
-
-    // always close the repo at the end of the build
-    project.getGradle().buildFinished(result -> {
-      project.getLogger().info("Closing Git publish repo: {}", extension.getRepoDir().get());
-      if (reset.getGrgit().isPresent()) {
-        reset.getGrgit().get().close();
-      }
-    });
   }
 
-  private GitPublishReset createResetTask(Project project, GitPublishExtension extension) {
+  private GitPublishReset createResetTask(Project project, GitPublishExtension extension, Provider<Grgit> grgit) {
     return project.getTasks().create(RESET_TASK, GitPublishReset.class, task -> {
       task.setGroup("publishing");
       task.setDescription("Prepares a git repo for new content to be generated.");
@@ -61,6 +55,7 @@ public class GitPublishPlugin implements Plugin<Project> {
       task.getReferenceRepoUri().set(extension.getReferenceRepoUri());
       task.getBranch().set(extension.getBranch());
       task.setPreserve(extension.getPreserve());
+      task.getGrgit().set(grgit);
     });
   }
 
