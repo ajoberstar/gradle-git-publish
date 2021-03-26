@@ -16,11 +16,7 @@ import org.ajoberstar.grgit.Grgit;
 import org.ajoberstar.grgit.Ref;
 import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.*;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -35,15 +31,19 @@ public class GitPublishReset extends DefaultTask {
   private final Property<String> repoUri;
   private final Property<String> referenceRepoUri;
   private final Property<String> branch;
+  private ObjectFactory objectFactory;
+  private FileSystemOperations fs;
   private PatternFilterable preserve;
 
   @Inject
-  public GitPublishReset(ProjectLayout layout, ObjectFactory objectFactory) {
+  public GitPublishReset(ObjectFactory objectFactory, FileSystemOperations fs) {
     this.grgit = objectFactory.property(Grgit.class);
-    this.repoDirectory = getProject().getObjects().directoryProperty();
+    this.repoDirectory = objectFactory.directoryProperty();
     this.repoUri = objectFactory.property(String.class);
     this.referenceRepoUri = objectFactory.property(String.class);
     this.branch = objectFactory.property(String.class);
+    this.objectFactory = objectFactory;
+    this.fs = fs;
 
     // always consider this task out of date
     this.getOutputs().upToDateWhen(t -> false);
@@ -151,7 +151,7 @@ public class GitPublishReset extends DefaultTask {
     }
 
     // clean up unwanted files
-    FileTree repoTree = getProject().fileTree(git.getRepository().getRootDir());
+    FileTree repoTree = objectFactory.fileTree().from(git.getRepository().getRootDir());
     FileTree preservedTree = repoTree.matching(getPreserve());
     FileTree unwantedTree = repoTree.minus(preservedTree).getAsFileTree();
     unwantedTree.visit(new FileVisitor() {
@@ -191,13 +191,13 @@ public class GitPublishReset extends DefaultTask {
           });
     } catch (Exception e) {
       // missing, invalid, or corrupt repo
-      getProject().getLogger().debug("Failed to find existing Git publish repository.", e);
+      getLogger().debug("Failed to find existing Git publish repository.", e);
       return Optional.empty();
     }
   }
 
   private Grgit freshRepo() {
-    getProject().delete(repoDirectory.get().getAsFile());
+    fs.delete(spec -> spec.delete(repoDirectory.get().getAsFile()));
 
     Grgit repo = Grgit.init(op -> {
       op.setDir(repoDirectory.get().getAsFile());

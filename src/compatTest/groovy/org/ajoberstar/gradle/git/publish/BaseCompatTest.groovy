@@ -412,6 +412,25 @@ gitPublish {
     result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
   }
 
+  def 'is configuration cache compatible'() {
+    given:
+    buildFile << """
+plugins {
+  id 'org.ajoberstar.git-publish'
+}
+
+gitPublish {
+  repoUri = '${remote.repository.rootDir.toURI()}'
+  branch = 'gh-pages'
+  contents.from 'src'
+  sign = false
+}
+"""
+
+    expect:
+    build("gitPublishPush", "--configuration-cache")
+  }
+
   private BuildResult build(String... args = ['gitPublishPush', '--stacktrace', '--info']) {
     return runner(args).build()
   }
