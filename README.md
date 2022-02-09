@@ -1,8 +1,14 @@
 # gradle-git-publish
 
-![](https://github.com/ajoberstar/gradle-git-publish/workflows/.github/workflows/build.yaml/badge.svg)
+[![CI](https://github.com/ajoberstar/gradle-git-publish/actions/workflows/ci.yaml/badge.svg)](https://github.com/ajoberstar/gradle-git-publish/actions/workflows/ci.yaml)
 
 ## Project News
+
+### Newest versions are on Maven Central
+
+As of 3.0.1, gradle-git-publish is published to Maven Central.
+
+This project is no longer directly published to the Gradle Plugin Portal, but since the portal proxies Maven Central you can still access it through the portal. The only side effect is that [the portal](https://plugins.gradle.org/plugin/org.ajoberstar.git-publish) will no longer list the latest version. Use this repo or [search.maven.org](https://search.maven.org/search?q=g:org.ajoberstar.git-publish) to find the latest version.
 
 ### Retirement of Bintray/JCenter
 
@@ -42,27 +48,10 @@ changes and compatibility with Java and Gradle versions.
 
 ### Applying the Plugin
 
-**Plugins DSL**
-
 ```groovy
 plugins {
     id 'org.ajoberstar.git-publish' version '<version>'
 }
-```
-
-**Classic**
-
-```groovy
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'org.ajoberstar:gradle-git-publish:<version>'
-    }
-}
-
-apply plugin: 'org.ajoberstar.git-publish'
 ```
 
 ### Configuration

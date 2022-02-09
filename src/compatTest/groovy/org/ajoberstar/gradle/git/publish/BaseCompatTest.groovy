@@ -2,30 +2,35 @@ package org.ajoberstar.gradle.git.publish
 
 import spock.lang.IgnoreIf
 import spock.lang.Specification
+import spock.lang.TempDir
+
 import org.ajoberstar.grgit.Grgit
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.UnexpectedBuildFailure
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 
 class BaseCompatTest extends Specification {
-  @Rule TemporaryFolder tempDir = new TemporaryFolder()
+  @TempDir File tempDir
   File projectDir
   File buildFile
   Grgit remote
 
   def setup() {
-    projectDir = tempDir.newFolder('project')
+    projectDir = new File(tempDir, 'project')
     buildFile = projectFile('build.gradle')
 
-    def remoteDir = tempDir.newFolder('remote')
+    def remoteDir = new File(tempDir, 'remote')
     remote = Grgit.init(dir: remoteDir)
 
     remoteFile('master.txt') << 'contents here'
     remote.add(patterns: ['.'])
     remote.commit(message: 'first commit')
+
+    // handle different init branches to keep existing tests the same
+    if (remote.branch.current().name != 'master') {
+      remote.checkout(branch: 'master', createBranch: true)
+    }
 
     remote.checkout(branch: 'gh-pages', orphan: true)
     remote.remove(patterns: ['master.txt'])
@@ -89,7 +94,7 @@ gitPublish {
 
   def 'reset pulls from reference repo if available before pulling from remote'() {
     given:
-    def referenceDir = tempDir.newFolder('reference')
+    def referenceDir = new File(tempDir, 'reference')
     def reference = Grgit.clone(dir: referenceDir, uri: remote.repository.rootDir.toURI())
     reference.checkout(branch: 'gh-pages', createBranch: true)
     // add a file that will get fetched but not pushed
@@ -275,12 +280,17 @@ gitPublish {
 
   def 'existing working repo is scrapped if different remote'() {
     given:
-    def badRemoteDir = tempDir.newFolder('badRemote')
+    def badRemoteDir = new File(tempDir, 'badRemote')
     def badRemote = Grgit.init(dir: badRemoteDir)
 
     new File(badRemoteDir, 'master.txt') << 'bad contents here'
     badRemote.add(patterns: ['.'])
     badRemote.commit(message: 'bad first commit')
+
+    // handle different init branches to keep existing tests the same
+    if (badRemote.branch.current().name != 'master') {
+      badRemote.checkout(branch: 'master', createBranch: true)
+    }
 
     def working = Grgit.clone(dir: "${projectDir}/build/gitPublish", uri: badRemote.repository.rootDir.toURI())
     working.checkout(branch: 'gh-pages', startPoint: 'origin/master', createBranch: true)
