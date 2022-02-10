@@ -14,6 +14,8 @@ import javax.inject.Inject;
 
 import org.ajoberstar.grgit.Grgit;
 import org.ajoberstar.grgit.Ref;
+import org.ajoberstar.grgit.gradle.GrgitService;
+import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.DirectoryProperty;
@@ -23,15 +25,12 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.util.PatternFilterable;
 
+@UntrackedTask(because = "Git tracks the state")
 public class GitPublishReset extends DefaultTask {
-  private final Property<Grgit> grgit;
-  private final DirectoryProperty repoDirectory;
+  private final Property<GrgitService> grgitService;
   private final Property<String> repoUri;
   private final Property<String> referenceRepoUri;
   private final Property<String> branch;
@@ -39,29 +38,20 @@ public class GitPublishReset extends DefaultTask {
 
   @Inject
   public GitPublishReset(ProjectLayout layout, ObjectFactory objectFactory) {
-    this.grgit = objectFactory.property(Grgit.class);
-    this.repoDirectory = getProject().getObjects().directoryProperty();
+    this.grgitService = objectFactory.property(GrgitService.class);
     this.repoUri = objectFactory.property(String.class);
     this.referenceRepoUri = objectFactory.property(String.class);
     this.branch = objectFactory.property(String.class);
-
-    // always consider this task out of date
-    this.getOutputs().upToDateWhen(t -> false);
   }
 
   @Internal
-  public Property<Grgit> getGrgit() {
-    return grgit;
+  public Property<GrgitService> getGrgitService() {
+    return grgitService;
   }
 
   @Internal
   public Property<String> getReferenceRepoUri() {
     return referenceRepoUri;
-  }
-
-  @OutputDirectory
-  public DirectoryProperty getRepoDirectory() {
-    return repoDirectory;
   }
 
   @Input
@@ -84,11 +74,39 @@ public class GitPublishReset extends DefaultTask {
   }
 
   @TaskAction
-  public void reset() {
-    Grgit git = findExistingRepo().orElseGet(() -> freshRepo());
-    grgit.set(git);
+  public void reset() throws IOException {
+    var git = grgitService.get().getGrgit();
 
-    String pubBranch = getBranch().get();
+    if (!isRemoteUriMatch(git, "origin", repoUri.get())) {
+      git.getRemote().remove(op -> {
+        op.setName("origin");
+      });
+      git.getRemote().add(op -> {
+        op.setName("origin");
+        op.setUrl(repoUri.get());
+      });
+    }
+
+    if (referenceRepoUri.isPresent() && !isRemoteUriMatch(git, "reference", referenceRepoUri.get())) {
+      git.getRemote().remove(op -> {
+        op.setName("reference");
+      });
+
+      git.getRemote().add(op -> {
+        op.setName("reference");
+        op.setUrl(referenceRepoUri.get());
+      });
+    }
+
+    var pubBranch = getBranch().get();
+
+    if (!pubBranch.equals(git.getBranch().current().getName())) {
+      // create a new orphan branch
+      git.checkout(op -> {
+        op.setBranch(pubBranch);
+        op.setOrphan(true);
+      });
+    }
 
     if (referenceRepoUri.isPresent()) {
       Map<Ref, String> referenceBranches = git.lsremote(op -> {
@@ -142,12 +160,6 @@ public class GitPublishReset extends DefaultTask {
         op.setCommit("origin/" + pubBranch);
         op.setMode("hard");
       });
-    } else {
-      // create a new orphan branch
-      git.checkout(op -> {
-        op.setBranch(pubBranch);
-        op.setOrphan(true);
-      });
     }
 
     // clean up unwanted files
@@ -177,55 +189,20 @@ public class GitPublishReset extends DefaultTask {
     });
   }
 
-  private Optional<Grgit> findExistingRepo() {
-    try {
-      return Optional.of(Grgit.open(op -> op.setDir(repoDirectory.get().getAsFile())))
-          .filter(repo -> {
-            boolean valid = isRemoteUriMatch(repo, "origin", repoUri.get())
-                && (!referenceRepoUri.isPresent() || isRemoteUriMatch(repo, "reference", referenceRepoUri.get()))
-                && branch.get().equals(repo.getBranch().current().getName());
-            if (!valid) {
-              repo.close();
-            }
-            return valid;
-          });
-    } catch (Exception e) {
-      // missing, invalid, or corrupt repo
-      getProject().getLogger().debug("Failed to find existing Git publish repository.", e);
-      return Optional.empty();
-    }
-  }
-
-  private Grgit freshRepo() {
-    getProject().delete(repoDirectory.get().getAsFile());
-
-    Grgit repo = Grgit.init(op -> {
-      op.setDir(repoDirectory.get().getAsFile());
-    });
-    repo.getRemote().add(op -> {
-      op.setName("origin");
-      op.setUrl(repoUri.get());
-    });
-    if (referenceRepoUri.isPresent()) {
-      repo.getRemote().add(op -> {
-        op.setName("reference");
-        op.setUrl(referenceRepoUri.get());
-      });
-    }
-    return repo;
-  }
-
   private boolean isRemoteUriMatch(Grgit grgit, String remoteName, String remoteUri) {
     try {
-      String currentRemoteUri = grgit.getRemote().list().stream()
+      var maybeCurrentRemoteUri = grgit.getRemote().list().stream()
           .filter(remote -> remote.getName().equals(remoteName))
           .map(remote -> remote.getUrl())
-          .findAny()
-          .orElse(null);
+          .findAny();
 
       // need to use the URIish to normalize them and ensure we support all Git compatible URI-ishs (URL
       // is too limiting)
-      return new URIish(remoteUri).equals(new URIish(currentRemoteUri));
+      if (maybeCurrentRemoteUri.isPresent()) {
+        return new URIish(remoteUri).equals(new URIish(maybeCurrentRemoteUri.get()));
+      } else {
+        return false;
+      }
     } catch (URISyntaxException e) {
       throw new RuntimeException("Invalid URI.", e);
     }

@@ -318,7 +318,6 @@ gitPublish {
     then:
     result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
     remote.log().size() == 2
-    working.branch.list()*.name == ['gh-pages']
   }
 
   def 'when no git publish tasks are run, build completes successfully'() {
