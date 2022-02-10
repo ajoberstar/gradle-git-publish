@@ -6,7 +6,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -15,14 +14,9 @@ import javax.inject.Inject;
 import org.ajoberstar.grgit.Grgit;
 import org.ajoberstar.grgit.Ref;
 import org.ajoberstar.grgit.gradle.GrgitService;
-import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.*;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
@@ -35,13 +29,15 @@ public class GitPublishReset extends DefaultTask {
   private final Property<String> referenceRepoUri;
   private final Property<String> branch;
   private PatternFilterable preserve;
+  private final ObjectFactory objectFactory;
 
   @Inject
-  public GitPublishReset(ProjectLayout layout, ObjectFactory objectFactory) {
+  public GitPublishReset(ObjectFactory objectFactory) {
     this.grgitService = objectFactory.property(GrgitService.class);
     this.repoUri = objectFactory.property(String.class);
     this.referenceRepoUri = objectFactory.property(String.class);
     this.branch = objectFactory.property(String.class);
+    this.objectFactory = objectFactory;
   }
 
   @Internal
@@ -162,10 +158,10 @@ public class GitPublishReset extends DefaultTask {
       });
     }
 
-    // clean up unwanted files
-    FileTree repoTree = getProject().fileTree(git.getRepository().getRootDir());
-    FileTree preservedTree = repoTree.matching(getPreserve());
-    FileTree unwantedTree = repoTree.minus(preservedTree).getAsFileTree();
+    var repoTree = objectFactory.fileTree();
+    repoTree.from(git.getRepository().getRootDir());
+    var preservedTree = repoTree.matching(getPreserve());
+    var unwantedTree = repoTree.minus(preservedTree).getAsFileTree();
     unwantedTree.visit(new FileVisitor() {
       @Override
       public void visitDir(FileVisitDetails fileVisitDetails) {

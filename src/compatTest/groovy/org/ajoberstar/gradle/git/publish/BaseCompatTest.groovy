@@ -421,11 +421,11 @@ gitPublish {
     result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
   }
 
-  private BuildResult build(String... args = ['gitPublishPush', '--stacktrace', '--info']) {
+  private BuildResult build(String... args = ['gitPublishPush', '--stacktrace', '--info', '--configuration-cache']) {
     return runner(args).build()
   }
 
-  private BuildResult buildAndFail(String... args = ['gitPublishPush', '--stacktrace', '--info']) {
+  private BuildResult buildAndFail(String... args = ['gitPublishPush', '--stacktrace', '--info', '--configuration-cache']) {
     return runner(args).buildAndFail()
   }
 
