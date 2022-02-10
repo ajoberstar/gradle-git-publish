@@ -1,10 +1,12 @@
 package org.ajoberstar.gradle.git.publish;
 
+import javax.inject.Inject;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -19,13 +21,14 @@ public class GitPublishExtension {
   private final CopySpec contents;
   private final PatternFilterable preserve;
 
-  public GitPublishExtension(Project project) {
-    this.repoDir = project.getObjects().directoryProperty();
-    this.repoUri = project.getObjects().property(String.class);
-    this.referenceRepoUri = project.getObjects().property(String.class);
-    this.branch = project.getObjects().property(String.class);
-    this.commitMessage = project.getObjects().property(String.class);
-    this.sign = project.getObjects().property(Boolean.class);
+  @Inject
+  public GitPublishExtension(Project project, ObjectFactory objectFactory) {
+    this.repoDir = objectFactory.directoryProperty();
+    this.repoUri = objectFactory.property(String.class);
+    this.referenceRepoUri = objectFactory.property(String.class);
+    this.branch = objectFactory.property(String.class);
+    this.commitMessage = objectFactory.property(String.class);
+    this.sign = objectFactory.property(Boolean.class);
 
     this.contents = project.copySpec();
     this.preserve = new PatternSet();

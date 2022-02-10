@@ -19,19 +19,20 @@ mavenCentral {
   developerName.set("Andrew Oberstar")
   developerEmail.set("ajoberstar@gmail.com")
   githubOwner.set("ajoberstar")
-  githubRepository.set("reckon")
+  githubRepository.set("gradle-git-publish")
 }
 
 java {
   toolchain {
-    languageVersion.set(JavaLanguageVersion.of(8))
+    languageVersion.set(JavaLanguageVersion.of(11))
   }
 }
 
 dependencies {
   // grgit
-  api("org.ajoberstar.grgit:grgit-core:[4.0,5.0[")
-  compatTestImplementation("org.ajoberstar.grgit:grgit-core:[4.0,5.0[")
+  api("org.ajoberstar.grgit:grgit-core:[5.0,6.0[")
+  api("org.ajoberstar.grgit:grgit-gradle:[5.0,6.0[")
+  compatTestImplementation("org.ajoberstar.grgit:grgit-core:[5.0,6.0[")
 
   // testing
   compatTestImplementation(gradleTestKit())
@@ -49,20 +50,12 @@ tasks.withType<Test> {
 }
 
 stutter {
-  val java8 by matrices.creating {
-    javaToolchain {
-      languageVersion.set(JavaLanguageVersion.of(8))
-    }
-    gradleVersions {
-      compatibleRange("5.0")
-    }
-  }
   val java11 by matrices.creating {
     javaToolchain {
       languageVersion.set(JavaLanguageVersion.of(11))
     }
     gradleVersions {
-      compatibleRange("5.0")
+      compatibleRange("7.0")
     }
   }
   val java17 by matrices.creating {

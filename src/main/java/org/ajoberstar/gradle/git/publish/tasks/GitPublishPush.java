@@ -5,29 +5,26 @@ import java.util.Arrays;
 
 import javax.inject.Inject;
 
-import org.ajoberstar.grgit.BranchStatus;
-import org.ajoberstar.grgit.Grgit;
+import org.ajoberstar.grgit.gradle.GrgitService;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
 
+@UntrackedTask(because = "Git tracks the state")
 public class GitPublishPush extends DefaultTask {
-  private final Property<Grgit> grgit;
+  private final Property<GrgitService> grgitService;
   private final Property<String> branch;
 
   @Inject
   public GitPublishPush(ObjectFactory objectFactory) {
-    this.grgit = objectFactory.property(Grgit.class);
+    this.grgitService = objectFactory.property(GrgitService.class);
     this.branch = objectFactory.property(String.class);
-
-    // always consider this task out of date
-    this.getOutputs().upToDateWhen(t -> false);
 
     this.onlyIf(t -> {
       try {
-        Grgit git = getGrgit().get();
-        BranchStatus status = git.getBranch().status(op -> {
+        var git = getGrgitService().get().getGrgit();
+        var status = git.getBranch().status(op -> {
           op.setName(getBranch().get());
         });
         return status.getAheadCount() > 0;
@@ -39,8 +36,8 @@ public class GitPublishPush extends DefaultTask {
   }
 
   @Internal
-  public Property<Grgit> getGrgit() {
-    return grgit;
+  public Property<GrgitService> getGrgitService() {
+    return grgitService;
   }
 
   @Input
@@ -48,15 +45,10 @@ public class GitPublishPush extends DefaultTask {
     return branch;
   }
 
-  @OutputDirectory
-  public File getRepoDirectory() {
-    return getGrgit().get().getRepository().getRootDir();
-  }
-
   @TaskAction
   public void push() {
-    Grgit git = getGrgit().get();
-    String pubBranch = getBranch().get();
+    var git = getGrgitService().get().getGrgit();
+    var pubBranch = getBranch().get();
     git.push(op -> {
       op.setRefsOrSpecs(Arrays.asList(String.format("refs/heads/%s:refs/heads/%s", pubBranch, pubBranch)));
     });

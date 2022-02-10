@@ -6,30 +6,28 @@ import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
-import org.ajoberstar.grgit.Grgit;
+import org.ajoberstar.grgit.gradle.GrgitService;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
 
+@UntrackedTask(because = "Git tracks the state")
 public class GitPublishCommit extends DefaultTask {
-  private final Property<Grgit> grgit;
+  private final Property<GrgitService> grgitService;
   private final Property<String> message;
   private final Property<Boolean> sign;
 
   @Inject
   public GitPublishCommit(ObjectFactory objectFactory) {
-    this.grgit = objectFactory.property(Grgit.class);
+    this.grgitService = objectFactory.property(GrgitService.class);
     this.message = objectFactory.property(String.class);
     this.sign = objectFactory.property(Boolean.class);
-
-    // always consider this task out of date
-    this.getOutputs().upToDateWhen(t -> false);
   }
 
   @Internal
-  public Property<Grgit> getGrgit() {
-    return grgit;
+  public Property<GrgitService> getGrgitService() {
+    return grgitService;
   }
 
   @Input
@@ -43,14 +41,9 @@ public class GitPublishCommit extends DefaultTask {
     return sign;
   }
 
-  @OutputDirectory
-  public File getRepoDirectory() {
-    return getGrgit().get().getRepository().getRootDir();
-  }
-
   @TaskAction
   public void commit() {
-    Grgit git = getGrgit().get();
+    var git = getGrgitService().get().getGrgit();
     git.add(op -> {
       op.setPatterns(Stream.of(".").collect(Collectors.toSet()));
     });
@@ -68,5 +61,4 @@ public class GitPublishCommit extends DefaultTask {
       setDidWork(true);
     }
   }
-
 }
