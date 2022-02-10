@@ -4,8 +4,8 @@
 cglib:cglib-nodep:3.3.0=compatTestCompileClasspath,compatTestRuntimeClasspath
 com.googlecode.javaewah:JavaEWAH:1.1.13=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 net.bytebuddy:byte-buddy:1.11.0=compatTestCompileClasspath,compatTestRuntimeClasspath
-org.ajoberstar.grgit:grgit-core:5.0.0-rc.7=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-org.ajoberstar.grgit:grgit-gradle:5.0.0-rc.7=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.ajoberstar.grgit:grgit-core:5.0.0=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.ajoberstar.grgit:grgit-gradle:5.0.0=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.apiguardian:apiguardian-api:1.1.0=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.assertj:assertj-core:3.16.1=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.codehaus.groovy:groovy:3.0.9=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
