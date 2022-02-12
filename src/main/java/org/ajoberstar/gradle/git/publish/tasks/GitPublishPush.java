@@ -6,6 +6,7 @@ import java.util.Arrays;
 import javax.inject.Inject;
 
 import org.ajoberstar.grgit.gradle.GrgitService;
+import org.ajoberstar.grgit.operation.BranchChangeOp;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -51,6 +52,13 @@ public class GitPublishPush extends DefaultTask {
     var pubBranch = getBranch().get();
     git.push(op -> {
       op.setRefsOrSpecs(Arrays.asList(String.format("refs/heads/%s:refs/heads/%s", pubBranch, pubBranch)));
+    });
+
+    // ensure tracking is set
+    git.getBranch().change(op -> {
+      op.setName(pubBranch);
+      op.setStartPoint("origin/" + pubBranch);
+      op.setMode(BranchChangeOp.Mode.TRACK);
     });
   }
 }
