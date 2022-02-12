@@ -3,75 +3,67 @@ package org.ajoberstar.gradle.git.publish;
 import javax.inject.Inject;
 
 import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.api.tasks.util.PatternSet;
 
 public class GitPublishExtension {
-  private final DirectoryProperty repoDir;
-  private final Property<String> repoUri;
-  private final Property<String> referenceRepoUri;
-  private final Property<String> branch;
-  private final Property<String> commitMessage;
-  private final Property<Boolean> sign;
-  private final CopySpec contents;
-  private final PatternFilterable preserve;
+  private final NamedDomainObjectContainer<GitPublication> publications;
 
   @Inject
   public GitPublishExtension(Project project, ObjectFactory objectFactory) {
-    this.repoDir = objectFactory.directoryProperty();
-    this.repoUri = objectFactory.property(String.class);
-    this.referenceRepoUri = objectFactory.property(String.class);
-    this.branch = objectFactory.property(String.class);
-    this.commitMessage = objectFactory.property(String.class);
-    this.sign = objectFactory.property(Boolean.class);
+    this.publications = objectFactory.domainObjectContainer(GitPublication.class, name -> new GitPublication(name, project, objectFactory));
+  }
 
-    this.contents = project.copySpec();
-    this.preserve = new PatternSet();
-    this.preserve.include(".git/**/*");
+  public NamedDomainObjectContainer<GitPublication> getPublications() {
+    return publications;
+  }
+
+  public void publications(Action<? super NamedDomainObjectContainer<? super GitPublication>> action) {
+    action.execute(publications);
   }
 
   public DirectoryProperty getRepoDir() {
-    return repoDir;
+    return publications.getByName("main").getRepoDir();
   }
 
   public Property<String> getRepoUri() {
-    return repoUri;
+    return publications.getByName("main").getRepoUri();
   }
 
   public Property<String> getReferenceRepoUri() {
-    return referenceRepoUri;
+    return publications.getByName("main").getReferenceRepoUri();
   }
 
   public Property<String> getBranch() {
-    return branch;
+    return publications.getByName("main").getBranch();
   }
 
   public Property<String> getCommitMessage() {
-    return commitMessage;
+    return publications.getByName("main").getCommitMessage();
   }
 
   public Property<Boolean> getSign() {
-    return sign;
+    return publications.getByName("main").getSign();
   }
 
   public CopySpec getContents() {
-    return contents;
+    return publications.getByName("main").getContents();
   }
 
   public void contents(Action<? super CopySpec> action) {
-    action.execute(contents);
+    publications.getByName("main").contents(action);
   }
 
   public PatternFilterable getPreserve() {
-    return preserve;
+    return publications.getByName("main").getPreserve();
   }
 
   public void preserve(Action<? super PatternFilterable> action) {
-    action.execute(preserve);
+    publications.getByName("main").preserve(action);
   }
 }

@@ -92,6 +92,27 @@ gitPublish {
 }
 ```
 
+As of v4.1.0, you can now configure multiple publications (e.g. to target different repositories or branches).
+
+```groovy
+gitPublish {
+    commitMessage = 'My favorite commit message' // configures the main publication
+
+    publications {
+        // main
+        main {
+            branch = 'great-branch' // alternatively can configure at the top-level of the gitPublish block
+            // ... any other config from the gitPublish block ...
+        }
+
+        other {
+            branch = 'some-branch' // may need branch.set('some-branch')
+            // ... any other config from the gitPublish block ...
+        }
+    }
+}
+```
+
 ### Tasks and Execution
 
 Generally, you'll just run `gitPublishPush`, but there is a series of four tasks that happen in order.
@@ -100,6 +121,10 @@ Generally, you'll just run `gitPublishPush`, but there is a series of four tasks
 - `gitPublishCopy` - Copies any files defined in the `contents` CopySpec into the working repo.
 - `gitPublishCommit` - Commits all changes to the working repo.
 - `gitPublishPush` - If changes were committed, pushed them to the `repoUri`.
+
+Each publication gets its own set of tasks, with a general `gitPublishPushAll` if you want to push all publications to their respective repos/branches.
+
+As is common in Gradle, the `main` publication is not indicated in task names (e.g. for `main` `gitPublishCommit` and for `other` `gitPublishOtherCommit`).
 
 ### Avoiding Extra Copy
 
