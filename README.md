@@ -25,10 +25,6 @@ maven {
 
 Made possible by [lacasseio/bintray-helper](https://github.com/lacasseio/bintray-helper) in case you have a similar need to pull your old Bintray artifacts.
 
-### Maintenance
-
-I'm not spending much time on this project anymore. If you're interested in taking over maintenance, please open an issue.
-
 ## Why do you care?
 
 Git is immensely popular and being able to publish to it as part of a build process can be very valuable, for example to publish a blog or project documentation to GitHub Pages.
