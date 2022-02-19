@@ -11,8 +11,9 @@ group = "org.ajoberstar.git-publish"
 description = "Gradle plugin for publishing to Git repositories"
 
 reckon {
-  scopeFromProp()
-  stageFromProp("beta", "rc", "final")
+  stages("beta", "rc", "final")
+  setScopeCalc(calcScopeFromProp().or(calcScopeFromCommitMessages()))
+  setStageCalc(calcStageFromProp())
 }
 
 mavenCentral {
