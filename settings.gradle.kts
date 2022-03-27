@@ -4,9 +4,13 @@ pluginManagement {
 
     id("org.ajoberstar.grgit") version "5.0.0"
     id("org.ajoberstar.reckon") version "0.16.1"
-    id("org.ajoberstar.stutter") version "0.7.0"
+    id("org.ajoberstar.stutter") version "0.7.1"
 
     id("com.diffplug.spotless") version "6.3.0"
+  }
+
+  repositories {
+    mavenCentral()
   }
 }
 
