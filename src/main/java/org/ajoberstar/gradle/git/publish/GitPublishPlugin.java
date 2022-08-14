@@ -11,6 +11,7 @@ import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.util.GradleVersion;
 
 public class GitPublishPlugin implements Plugin<Project> {
   @Override
@@ -82,6 +83,11 @@ public class GitPublishPlugin implements Plugin<Project> {
       task.setDescription("Copy " + publication.getName() + " publication contents to be published to git.");
       task.with(publication.getContents());
       task.into(publication.getRepoDir());
+
+      // do not track state added in Gradle 7.3
+      if (GradleVersion.version("7.3").compareTo(GradleVersion.current()) <= 0) {
+        task.doNotTrackState("Tracked by Git instead");
+      }
     });
   }
 
