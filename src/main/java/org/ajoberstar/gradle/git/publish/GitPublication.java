@@ -16,6 +16,7 @@ public class GitPublication implements Named {
   private final Property<String> repoUri;
   private final Property<String> referenceRepoUri;
   private final Property<String> branch;
+  private final Property<Integer> fetchDepth;
   private final Property<String> commitMessage;
   private final Property<Boolean> sign;
   private final CopySpec contents;
@@ -27,6 +28,7 @@ public class GitPublication implements Named {
     this.repoUri = objectFactory.property(String.class);
     this.referenceRepoUri = objectFactory.property(String.class);
     this.branch = objectFactory.property(String.class);
+    this.fetchDepth = objectFactory.property(Integer.class);
     this.commitMessage = objectFactory.property(String.class);
     this.sign = objectFactory.property(Boolean.class);
 
@@ -54,6 +56,10 @@ public class GitPublication implements Named {
 
   public Property<String> getBranch() {
     return branch;
+  }
+
+  public Property<Integer> getFetchDepth() {
+    return fetchDepth;
   }
 
   public Property<String> getCommitMessage() {

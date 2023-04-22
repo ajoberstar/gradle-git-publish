@@ -28,6 +28,7 @@ public class GitPublishReset extends DefaultTask {
   private final Property<String> repoUri;
   private final Property<String> referenceRepoUri;
   private final Property<String> branch;
+  private final Property<Integer> fetchDepth;
   private PatternFilterable preserve;
   private final ObjectFactory objectFactory;
 
@@ -37,6 +38,7 @@ public class GitPublishReset extends DefaultTask {
     this.repoUri = objectFactory.property(String.class);
     this.referenceRepoUri = objectFactory.property(String.class);
     this.branch = objectFactory.property(String.class);
+    this.fetchDepth = objectFactory.property(Integer.class);
     this.objectFactory = objectFactory;
   }
 
@@ -58,6 +60,12 @@ public class GitPublishReset extends DefaultTask {
   @Input
   public Property<String> getBranch() {
     return branch;
+  }
+
+  @Input
+  @Optional
+  public Property<Integer> getFetchDepth() {
+    return fetchDepth;
   }
 
   @Internal
@@ -118,6 +126,7 @@ public class GitPublishReset extends DefaultTask {
         git.fetch(op -> {
           op.setRefSpecs(Arrays.asList(String.format("+refs/heads/%s:refs/remotes/reference/%s", pubBranch, pubBranch)));
           op.setTagMode("none");
+          op.setDepth(getFetchDepth().getOrNull());
         });
       }
     }
@@ -136,6 +145,7 @@ public class GitPublishReset extends DefaultTask {
         getLogger().info("Fetching from remote repo: " + repoUri.get());
         op.setRefSpecs(Arrays.asList(String.format("+refs/heads/%s:refs/remotes/origin/%s", pubBranch, pubBranch)));
         op.setTagMode("none");
+        op.setDepth(getFetchDepth().getOrNull());
       });
 
       // make sure local branch exists

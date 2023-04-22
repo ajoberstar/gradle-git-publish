@@ -92,6 +92,41 @@ gitPublish {
     remoteFile('content.txt').text == 'published content here'
   }
 
+  def 'publish with fetchDepth 1 adds to history if branch already exists'() {
+    given:
+    remote.checkout(branch: 'gh-pages')
+    remoteFile('index.md') << 'And has great content'
+    remote.add(patterns: ['.'])
+    remote.commit(message: 'second pages commit')
+    remote.checkout(branch: 'master')
+
+    projectFile('src/content.txt') << 'published content here'
+
+    buildFile << """
+plugins {
+  id 'org.ajoberstar.git-publish'
+}
+
+gitPublish {
+  repoUri = '${remote.repository.rootDir.toURI()}'
+  branch = 'gh-pages'
+  fetchDepth = 1
+  contents.from 'src'
+}
+"""
+    when:
+    def result = build()
+    and:
+    remote.checkout(branch: 'gh-pages')
+    then:
+    result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
+    remote.log().size() == 3
+    remoteFile('content.txt').text == 'published content here'
+    def working = Grgit.open(dir: "${projectDir}/build/gitPublish/main")
+    working.head().parentIds.collect { working.resolve.toCommit(it).parentIds == [] }
+    working.close()
+  }
+
   def 'reset pulls from reference repo if available before pulling from remote'() {
     given:
     def referenceDir = new File(tempDir, 'reference')
@@ -339,7 +374,6 @@ task hello {
     notThrown(UnexpectedBuildFailure)
   }
 
-  @IgnoreIf({ Integer.parseInt(System.properties['compat.gradle.version'].split('\\.')[0]) < 5 })
   def 'commit message can be changed'() {
      given:
     projectFile('src/content.txt') << 'published content here'
