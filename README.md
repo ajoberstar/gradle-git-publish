@@ -50,6 +50,9 @@ gitPublish {
 
     // branch will be created if it doesn't exist
     branch = 'gh-pages'
+  
+    // if set, a shallow clone will be performed instead of pulling all history
+    fetchDepth = null
 
     // generally, you don't need to touch this
     repoDir = file("$buildDir/somewhereelse") // defaults to $buildDir/gitPublish

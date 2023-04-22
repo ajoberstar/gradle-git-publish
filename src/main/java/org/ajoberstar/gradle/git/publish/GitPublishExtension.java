@@ -43,6 +43,10 @@ public class GitPublishExtension {
     return publications.getByName("main").getBranch();
   }
 
+  public Property<Integer> getFetchDepth() {
+    return publications.getByName("main").getFetchDepth();
+  }
+
   public Property<String> getCommitMessage() {
     return publications.getByName("main").getCommitMessage();
   }

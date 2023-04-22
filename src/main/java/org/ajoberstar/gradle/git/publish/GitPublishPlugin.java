@@ -73,6 +73,7 @@ public class GitPublishPlugin implements Plugin<Project> {
       task.getRepoUri().set(publication.getRepoUri());
       task.getReferenceRepoUri().set(publication.getReferenceRepoUri());
       task.getBranch().set(publication.getBranch());
+      task.getFetchDepth().set(publication.getFetchDepth());
       task.setPreserve(publication.getPreserve());
     });
   }
