@@ -22,4 +22,4 @@ org.opentest4j:opentest4j:1.2.0=compatTestCompileClasspath,compatTestRuntimeClas
 org.ow2.asm:asm:9.1=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.slf4j:slf4j-api:1.7.30=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.spockframework:spock-core:2.0-groovy-3.0=compatTestCompileClasspath,compatTestRuntimeClasspath
-empty=
+empty=annotationProcessor,compatTestAnnotationProcessor,signatures,testAnnotationProcessor

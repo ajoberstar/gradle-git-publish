@@ -3,18 +3,10 @@ plugins {
   id("groovy")
 
   id("org.ajoberstar.stutter")
-  id("org.ajoberstar.grgit")
-  id("org.ajoberstar.reckon")
 }
 
 group = "org.ajoberstar.git-publish"
 description = "Gradle plugin for publishing to Git repositories"
-
-reckon {
-  stages("beta", "rc", "final")
-  setScopeCalc(calcScopeFromProp().or(calcScopeFromCommitMessages()))
-  setStageCalc(calcStageFromProp())
-}
 
 mavenCentral {
   developerName.set("Andrew Oberstar")
