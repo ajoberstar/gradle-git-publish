@@ -29,7 +29,7 @@ dependencies {
 
   // testing
   compatTestImplementation(gradleTestKit())
-  compatTestImplementation("org.spockframework:spock-core:2.0-groovy-3.0")
+  compatTestImplementation("org.spockframework:spock-core:2.3-groovy-3.0")
 }
 
 tasks.named<Jar>("jar") {
@@ -57,6 +57,14 @@ stutter {
     }
     gradleVersions {
       compatibleRange("7.3")
+    }
+  }
+  val java21 by matrices.creating {
+    javaToolchain {
+      languageVersion.set(JavaLanguageVersion.of(21))
+    }
+    gradleVersions {
+      compatibleRange("8.4")
     }
   }
 }
