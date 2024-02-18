@@ -69,6 +69,7 @@ public class GitPublishPlugin implements Plugin<Project> {
     return project.getTasks().register(getTaskName(publication, "Reset"), GitPublishReset.class, task -> {
       task.setGroup("publishing");
       task.setDescription("Prepares a git repo for " + publication.getName() + " publication content to be generated.");
+      task.usesService(grgitService);
       task.getGrgitService().set(grgitService);
       task.getRepoUri().set(publication.getRepoUri());
       task.getReferenceRepoUri().set(publication.getReferenceRepoUri());
@@ -96,6 +97,7 @@ public class GitPublishPlugin implements Plugin<Project> {
     return project.getTasks().register(getTaskName(publication, "Commit"), GitPublishCommit.class, task -> {
       task.setGroup("publishing");
       task.setDescription("Commits " + publication.getName() + " publication changes to be published to git.");
+      task.usesService(grgitService);
       task.getGrgitService().set(grgitService);
       task.getMessage().set(publication.getCommitMessage());
       task.getSign().set(publication.getSign());
@@ -106,6 +108,7 @@ public class GitPublishPlugin implements Plugin<Project> {
     return project.getTasks().register(getTaskName(publication, "Push"), GitPublishPush.class, task -> {
       task.setGroup("publishing");
       task.setDescription("Pushes " + publication.getName() + " publication changes to git.");
+      task.usesService(grgitService);
       task.getGrgitService().set(grgitService);
       task.getBranch().set(publication.getBranch());
     });
