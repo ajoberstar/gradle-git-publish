@@ -3,11 +3,11 @@
 # This file is expected to be part of source control.
 com.googlecode.javaewah:JavaEWAH:1.2.3=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 commons-codec:commons-codec:1.16.0=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-org.ajoberstar.grgit:grgit-core:5.2.1=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-org.ajoberstar.grgit:grgit-gradle:5.2.1=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.ajoberstar.grgit:grgit-core:5.2.2=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.ajoberstar.grgit:grgit-gradle:5.2.2=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.apiguardian:apiguardian-api:1.1.2=compatTestCompileClasspath
-org.codehaus.groovy:groovy:3.0.19=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.codehaus.groovy:groovy:3.0.20=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.hamcrest:hamcrest:2.2=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.junit.platform:junit-platform-commons:1.9.0=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.junit.platform:junit-platform-engine:1.9.0=compatTestCompileClasspath,compatTestRuntimeClasspath
