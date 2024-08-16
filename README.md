@@ -142,6 +142,16 @@ The following table should help translate settings you used in `org.ajoberstar.g
 
 Use the `gitPublishPush` task as replacement for the `publishGhPages` task.
 
+**NOTE:** If you are using `secrets.GITHUB_TOKEN` in GitHub Actions, it would be suggested declaring both `GRGIT_USER` and `GRGIT_PASS` like:
+
+```yml
+env:
+  GRGIT_USER: ${{ github.repository_owner }}
+  GRGIT_PASS: ${{ secrets.GITHUB_TOKEN }}
+```
+
+to prevent potential credential issues like [issue 109](https://github.com/ajoberstar/gradle-git-publish/issues/109).
+
 ## Finding versions
 
 ### Newest versions are on Maven Central
