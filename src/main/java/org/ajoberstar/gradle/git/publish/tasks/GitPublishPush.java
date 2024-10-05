@@ -1,64 +1,46 @@
 package org.ajoberstar.gradle.git.publish.tasks;
 
-import java.io.File;
-import java.util.Arrays;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 
 import javax.inject.Inject;
 
-import org.ajoberstar.grgit.gradle.GrgitService;
-import org.ajoberstar.grgit.operation.BranchChangeOp;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
+import org.gradle.process.ExecOperations;
 
 @UntrackedTask(because = "Git tracks the state")
-public class GitPublishPush extends DefaultTask {
-  private final Property<GrgitService> grgitService;
-  private final Property<String> branch;
-
-  @Inject
-  public GitPublishPush(ObjectFactory objectFactory) {
-    this.grgitService = objectFactory.property(GrgitService.class);
-    this.branch = objectFactory.property(String.class);
-
-    this.onlyIf(t -> {
-      try {
-        var git = getGrgitService().get().getGrgit();
-        var status = git.getBranch().status(op -> {
-          op.setName(getBranch().get());
-        });
-        return status.getAheadCount() > 0;
-      } catch (IllegalStateException e) {
-        // if we're not tracking anything yet (i.e. orphan) we need to push
-        return true;
-      }
-    });
-  }
-
-  @Internal
-  public Property<GrgitService> getGrgitService() {
-    return grgitService;
-  }
+public abstract class GitPublishPush extends DefaultTask {
+  @OutputDirectory
+  public abstract DirectoryProperty getRepoDir();
 
   @Input
-  public Property<String> getBranch() {
-    return branch;
-  }
+  public abstract Property<String> getBranch();
+
+  @Inject
+  protected abstract ExecOperations getExecOperations();
 
   @TaskAction
   public void push() {
-    var git = getGrgitService().get().getGrgit();
     var pubBranch = getBranch().get();
-    git.push(op -> {
-      op.setRefsOrSpecs(Arrays.asList(String.format("refs/heads/%s:refs/heads/%s", pubBranch, pubBranch)));
+    var output = new ByteArrayOutputStream();
+    getExecOperations().exec(spec -> {
+      var refSpec = String.format("refs/heads/%s:refs/heads/%s", pubBranch, pubBranch);
+      spec.commandLine("git", "push", "--porcelain", "--set-upstream", "origin", refSpec);
+      spec.workingDir(getRepoDir().get());
+      spec.setStandardOutput(output);
     });
 
-    // ensure tracking is set
-    git.getBranch().change(op -> {
-      op.setName(pubBranch);
-      op.setStartPoint("origin/" + pubBranch);
-      op.setMode(BranchChangeOp.Mode.TRACK);
-    });
+    var result = output.toString(StandardCharsets.UTF_8);
+    this.setDidWork(!result.contains("[up to date]"));
   }
 }

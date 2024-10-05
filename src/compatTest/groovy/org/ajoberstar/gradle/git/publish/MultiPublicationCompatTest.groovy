@@ -25,7 +25,7 @@ class MultiPublicationCompatTest extends Specification {
 
     remote1File('master.txt') << 'contents here'
     remote1.add(patterns: ['.'])
-    remote1.commit(message: 'first commit')
+    remote1.commit(message: 'first commit', sign: false)
 
     // handle different init branches to keep existing tests the same
     if (remote1.branch.current().name != 'master') {
@@ -37,7 +37,7 @@ class MultiPublicationCompatTest extends Specification {
     remote1File('index.md') << '# This Page is Awesome!'
     remote1File('1.0.0/index.md') << '# Version 1.0.0 is the Best!'
     remote1.add(patterns: ['.'])
-    remote1.commit(message: 'first pages commit')
+    remote1.commit(message: 'first pages commit', sign: false)
 
     remote1.checkout(branch: 'master')
 
@@ -46,7 +46,7 @@ class MultiPublicationCompatTest extends Specification {
 
     remote2File('master.txt') << 'contents here'
     remote2.add(patterns: ['.'])
-    remote2.commit(message: 'first commit')
+    remote2.commit(message: 'first commit', sign: false)
 
     // handle different init branches to keep existing tests the same
     if (remote2.branch.current().name != 'master') {
@@ -58,7 +58,7 @@ class MultiPublicationCompatTest extends Specification {
     remote2File('index.md') << '# This Page is Awesomest!'
     remote2File('1.0.0/index.md') << '# Version 1.0.0 is the Best!'
     remote2.add(patterns: ['.'])
-    remote2.commit(message: 'first pages commit')
+    remote2.commit(message: 'first pages commit', sign: false)
 
     remote2.checkout(branch: 'master')
   }
@@ -75,7 +75,7 @@ plugins {
 
 gitPublish {
   // can configure main at top-level
-  repoUri = '${remote1.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote1)}'
   contents.from 'src'
 
   publications {
@@ -85,7 +85,7 @@ gitPublish {
     }
 
     second {
-      repoUri.set('${remote2.repository.rootDir.toURI()}')
+      repoUri.set('${repoPath(remote2)}')
       branch.set('gh-pages')
       contents.from 'src2'
     }
@@ -107,11 +107,11 @@ gitPublish {
     remote2File('content.txt').text == 'second published content here'
   }
 
-  private BuildResult build(String... args = ['gitPublishPushAll', '--stacktrace', '--info', '--configuration-cache']) {
+  private BuildResult build(String... args = ['gitPublishPushAll', '--stacktrace', '--configuration-cache']) {
     return runner(args).build()
   }
 
-  private BuildResult buildAndFail(String... args = ['gitPublishPushAll', '--stacktrace', '--info', '--configuration-cache']) {
+  private BuildResult buildAndFail(String... args = ['gitPublishPushAll', '--stacktrace', '--configuration-cache']) {
     return runner(args).buildAndFail()
   }
 
@@ -140,5 +140,9 @@ gitPublish {
     File file = new File(projectDir, path)
     file.parentFile.mkdirs()
     return file
+  }
+
+  private String repoPath(Grgit repo) {
+    return repo.repository.rootDir.toPath().toAbsolutePath().toString().replace('\\', '\\\\')
   }
 }

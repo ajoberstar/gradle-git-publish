@@ -1,72 +1,50 @@
 package org.ajoberstar.gradle.git.publish.tasks;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
-import org.ajoberstar.grgit.Grgit;
-import org.ajoberstar.grgit.Ref;
-import org.ajoberstar.grgit.gradle.GrgitService;
-import org.eclipse.jgit.transport.URIish;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.file.*;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemLocationProperty;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.process.ExecOperations;
 
 @UntrackedTask(because = "Git tracks the state")
-public class GitPublishReset extends DefaultTask {
-  private final Property<GrgitService> grgitService;
-  private final Property<String> repoUri;
-  private final Property<String> referenceRepoUri;
-  private final Property<String> branch;
-  private final Property<Integer> fetchDepth;
+public abstract class GitPublishReset extends DefaultTask {
   private PatternFilterable preserve;
-  private final ObjectFactory objectFactory;
 
-  @Inject
-  public GitPublishReset(ObjectFactory objectFactory) {
-    this.grgitService = objectFactory.property(GrgitService.class);
-    this.repoUri = objectFactory.property(String.class);
-    this.referenceRepoUri = objectFactory.property(String.class);
-    this.branch = objectFactory.property(String.class);
-    this.fetchDepth = objectFactory.property(Integer.class);
-    this.objectFactory = objectFactory;
-  }
+  @OutputDirectory
+  public abstract DirectoryProperty getRepoDir();
 
   @Internal
-  public Property<GrgitService> getGrgitService() {
-    return grgitService;
-  }
-
-  @Internal
-  public Property<String> getReferenceRepoUri() {
-    return referenceRepoUri;
-  }
+  public abstract Property<String> getReferenceRepoUri();
 
   @Input
-  public Property<String> getRepoUri() {
-    return repoUri;
-  }
+  public abstract Property<String> getRepoUri();
 
   @Input
-  public Property<String> getBranch() {
-    return branch;
-  }
+  public abstract Property<String> getBranch();
 
   @Input
   @Optional
-  public Property<Integer> getFetchDepth() {
-    return fetchDepth;
-  }
+  public abstract Property<Integer> getFetchDepth();
 
   @Internal
   public PatternFilterable getPreserve() {
@@ -77,99 +55,145 @@ public class GitPublishReset extends DefaultTask {
     this.preserve = preserve;
   }
 
+  @Inject
+  protected abstract ObjectFactory getObjectFactory();
+
+  @Inject
+  protected abstract ExecOperations getExecOperations();
+
   @TaskAction
   public void reset() throws IOException {
-    var git = grgitService.get().getGrgit();
-
-    if (!isRemoteUriMatch(git, "origin", repoUri.get())) {
-      git.getRemote().remove(op -> {
-        op.setName("origin");
-      });
-      git.getRemote().add(op -> {
-        op.setName("origin");
-        op.setUrl(repoUri.get());
-      });
-    }
-
-    if (referenceRepoUri.isPresent() && !isRemoteUriMatch(git, "reference", referenceRepoUri.get())) {
-      git.getRemote().remove(op -> {
-        op.setName("reference");
-      });
-
-      git.getRemote().add(op -> {
-        op.setName("reference");
-        op.setUrl(referenceRepoUri.get());
-      });
-    }
-
+    var repoDir = getRepoDir().get().getAsFile();
     var pubBranch = getBranch().get();
 
-    if (!pubBranch.equals(git.getBranch().current().getName())) {
-      // create a new orphan branch
-      git.checkout(op -> {
-        op.setBranch(pubBranch);
-        op.setOrphan(true);
+    // initialize git repo
+    if (!new File(repoDir, ".git").exists()) {
+      getExecOperations().exec(spec -> {
+        spec.commandLine("git", "init");
+        spec.workingDir(repoDir);
+        spec.setStandardOutput(OutputStream.nullOutputStream());
       });
     }
 
-    if (referenceRepoUri.isPresent()) {
-      Map<Ref, String> referenceBranches = git.lsremote(op -> {
-        op.setRemote("reference");
-        op.setHeads(true);
+    // set origin
+    try {
+      getExecOperations().exec(spec -> {
+        spec.commandLine("git", "remote", "add", "origin", getRepoUri().get());
+        spec.workingDir(repoDir);
+        spec.setStandardOutput(OutputStream.nullOutputStream());
+        spec.setErrorOutput(OutputStream.nullOutputStream());
       });
+    } catch (Exception e) {
+      getExecOperations().exec(spec -> {
+        spec.commandLine("git", "remote", "set-url", "origin", getRepoUri().get());
+        spec.workingDir(repoDir);
+        spec.setStandardOutput(OutputStream.nullOutputStream());
+      });
+    }
 
-      boolean referenceBranchExists = referenceBranches.keySet().stream()
-          .anyMatch(ref -> ref.getFullName().equals("refs/heads/" + pubBranch));
+    // set reference
+    if (getReferenceRepoUri().isPresent()) {
+      try {
+        getExecOperations().exec(spec -> {
+          spec.commandLine("git", "remote", "add", "reference", getReferenceRepoUri().get());
+          spec.workingDir(repoDir);
+          spec.setStandardOutput(OutputStream.nullOutputStream());
+          spec.setErrorOutput(OutputStream.nullOutputStream());
+        });
+      } catch (Exception e) {
+        getExecOperations().exec(spec -> {
+          spec.commandLine("git", "remote", "set-url", "reference", getReferenceRepoUri().get());
+          spec.workingDir(repoDir);
+          spec.setStandardOutput(OutputStream.nullOutputStream());
+        });
+      }
 
-      if (referenceBranchExists) {
-        getLogger().info("Fetching from reference repo: " + referenceRepoUri.get());
-        git.fetch(op -> {
-          op.setRefSpecs(Arrays.asList(String.format("+refs/heads/%s:refs/remotes/reference/%s", pubBranch, pubBranch)));
-          op.setTagMode("none");
-          op.setDepth(getFetchDepth().getOrNull());
+      // check reference for branch
+      boolean referenceHasBranch;
+      try {
+        getExecOperations().exec(spec -> {
+          spec.commandLine("git", "ls-remote", "--exit-code", "reference", pubBranch);
+          spec.workingDir(repoDir);
+          spec.setStandardOutput(OutputStream.nullOutputStream());
+        });
+        referenceHasBranch = true;
+      } catch (Exception e) {
+        referenceHasBranch = false;
+      }
+
+      if (referenceHasBranch) {
+        // get local branch reset to remote state
+        getExecOperations().exec(spec -> {
+          var refSpec = String.format("+refs/heads/%s:refs/remotes/reference/%s", pubBranch, pubBranch);
+
+          spec.executable("git");
+          spec.args("fetch");
+          if (getFetchDepth().isPresent()) {
+            spec.args("--depth", getFetchDepth().get());
+          }
+          spec.args("reference", refSpec);
+
+          spec.workingDir(repoDir);
+          spec.setStandardOutput(OutputStream.nullOutputStream());
         });
       }
     }
 
-    Map<Ref, String> remoteBranches = git.lsremote(op -> {
-      op.setRemote("origin");
-      op.setHeads(true);
+    // check origin for branch
+    boolean hasBranch;
+    try {
+      getExecOperations().exec(spec -> {
+        spec.commandLine("git", "ls-remote", "--exit-code", "origin", pubBranch);
+        spec.workingDir(repoDir);
+        spec.setStandardOutput(OutputStream.nullOutputStream());
+      });
+      hasBranch = true;
+    } catch (Exception e) {
+      hasBranch = false;
+    }
+
+    if (hasBranch) {
+      // get local branch reset to remote state
+      getExecOperations().exec(spec -> {
+        var refSpec = String.format("+refs/heads/%s:refs/remotes/origin/%s", pubBranch, pubBranch);
+
+        spec.executable("git");
+        spec.args("fetch");
+        if (getFetchDepth().isPresent()) {
+          spec.args("--depth", getFetchDepth().get());
+        }
+        spec.args("origin", refSpec);
+
+        spec.workingDir(repoDir);
+        spec.setStandardOutput(OutputStream.nullOutputStream());
+      });
+
+      getExecOperations().exec(spec -> {
+        spec.commandLine("git", "switch", "--force-create", pubBranch, String.format("origin/%s", pubBranch));
+        spec.workingDir(repoDir);
+        spec.setStandardOutput(OutputStream.nullOutputStream());
+        spec.setErrorOutput(OutputStream.nullOutputStream());
+      });
+    } else {
+      // start with a fresh branch
+      getExecOperations().exec(spec -> {
+        spec.commandLine("git", "switch", "--orphan", pubBranch);
+        spec.workingDir(repoDir);
+        spec.setStandardOutput(OutputStream.nullOutputStream());
+        spec.setErrorOutput(OutputStream.nullOutputStream());
+      });
+    }
+
+    // clean repository
+    getExecOperations().exec(spec -> {
+      spec.commandLine("git", "clean", "-fdx");
+      spec.workingDir(repoDir);
+      spec.setStandardOutput(OutputStream.nullOutputStream());
     });
 
-    boolean remoteBranchExists = remoteBranches.keySet().stream()
-        .anyMatch(ref -> ref.getFullName().equals("refs/heads/" + pubBranch));
-
-    if (remoteBranchExists) {
-      // fetch only the existing pages branch
-      git.fetch(op -> {
-        getLogger().info("Fetching from remote repo: " + repoUri.get());
-        op.setRefSpecs(Arrays.asList(String.format("+refs/heads/%s:refs/remotes/origin/%s", pubBranch, pubBranch)));
-        op.setTagMode("none");
-        op.setDepth(getFetchDepth().getOrNull());
-      });
-
-      // make sure local branch exists
-      if (!git.getBranch().list().stream().anyMatch(branch -> branch.getName().equals(pubBranch))) {
-        git.getBranch().add(op -> {
-          op.setName(pubBranch);
-          op.setStartPoint("origin/" + pubBranch);
-        });
-      }
-
-      // get to the state the remote has
-      git.clean(op -> {
-        op.setDirectories(true);
-        op.setIgnore(false);
-      });
-      git.checkout(op -> op.setBranch(pubBranch));
-      git.reset(op -> {
-        op.setCommit("origin/" + pubBranch);
-        op.setMode("hard");
-      });
-    }
-
-    var repoTree = objectFactory.fileTree();
-    repoTree.from(git.getRepository().getRootDir());
+    // remove all files not marked in the preserve
+    var repoTree = getObjectFactory().fileTree();
+    repoTree.from(repoDir);
     var preservedTree = repoTree.matching(getPreserve());
     var unwantedTree = repoTree.minus(preservedTree).getAsFileTree();
     unwantedTree.visit(new FileVisitor() {
@@ -189,28 +213,10 @@ public class GitPublishReset extends DefaultTask {
     });
 
     // stage the removals, relying on dirs not being tracked by git
-    git.add(op -> {
-      op.setPatterns(Stream.of(".").collect(Collectors.toSet()));
-      op.setUpdate(true);
+    getExecOperations().exec(spec -> {
+      spec.commandLine("git", "add", "-A");
+      spec.workingDir(repoDir);
+      spec.setStandardOutput(OutputStream.nullOutputStream());
     });
-  }
-
-  private boolean isRemoteUriMatch(Grgit grgit, String remoteName, String remoteUri) {
-    try {
-      var maybeCurrentRemoteUri = grgit.getRemote().list().stream()
-          .filter(remote -> remote.getName().equals(remoteName))
-          .map(remote -> remote.getUrl())
-          .findAny();
-
-      // need to use the URIish to normalize them and ensure we support all Git compatible URI-ishs (URL
-      // is too limiting)
-      if (maybeCurrentRemoteUri.isPresent()) {
-        return new URIish(remoteUri).equals(new URIish(maybeCurrentRemoteUri.get()));
-      } else {
-        return false;
-      }
-    } catch (URISyntaxException e) {
-      throw new RuntimeException("Invalid URI.", e);
-    }
   }
 }
