@@ -1,18 +1,17 @@
 # This is a Gradle generated file for dependency locking.
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
-com.googlecode.javaewah:JavaEWAH:1.2.3=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-commons-codec:commons-codec:1.16.0=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-org.ajoberstar.grgit:grgit-core:5.2.2=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-org.ajoberstar.grgit:grgit-gradle:5.2.2=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+com.googlecode.javaewah:JavaEWAH:1.2.3=compatTestCompileClasspath,compatTestRuntimeClasspath
+commons-codec:commons-codec:1.17.0=compatTestCompileClasspath,compatTestRuntimeClasspath
+org.ajoberstar.grgit:grgit-core:5.3.0=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.apiguardian:apiguardian-api:1.1.2=compatTestCompileClasspath
-org.codehaus.groovy:groovy:3.0.20=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.codehaus.groovy:groovy:3.0.22=compatTestCompileClasspath,compatTestRuntimeClasspath
+org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.hamcrest:hamcrest:2.2=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.junit.platform:junit-platform-commons:1.9.0=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.junit.platform:junit-platform-engine:1.9.0=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.junit:junit-bom:5.9.0=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.opentest4j:opentest4j:1.2.0=compatTestCompileClasspath,compatTestRuntimeClasspath
-org.slf4j:slf4j-api:1.7.36=compatTestCompileClasspath,compatTestRuntimeClasspath,compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.slf4j:slf4j-api:1.7.36=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.spockframework:spock-core:2.3-groovy-3.0=compatTestCompileClasspath,compatTestRuntimeClasspath
-empty=annotationProcessor,compatTestAnnotationProcessor,signatures,testAnnotationProcessor
+empty=annotationProcessor,compatTestAnnotationProcessor,compileClasspath,runtimeClasspath,signatures,testAnnotationProcessor,testCompileClasspath,testRuntimeClasspath

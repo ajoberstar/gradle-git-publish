@@ -22,14 +22,9 @@ java {
 }
 
 dependencies {
-  // grgit
-  api("org.ajoberstar.grgit:grgit-core:[5.0,6.0[")
-  api("org.ajoberstar.grgit:grgit-gradle:[5.0,6.0[")
-  compatTestImplementation("org.ajoberstar.grgit:grgit-core:[5.0,6.0[")
-
-  // testing
   compatTestImplementation(gradleTestKit())
   compatTestImplementation("org.spockframework:spock-core:2.3-groovy-3.0")
+  compatTestImplementation("org.ajoberstar.grgit:grgit-core:[5.0,6.0[")
 }
 
 tasks.named<Jar>("jar") {

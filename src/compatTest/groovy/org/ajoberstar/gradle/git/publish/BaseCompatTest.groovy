@@ -1,14 +1,12 @@
 package org.ajoberstar.gradle.git.publish
 
-import spock.lang.IgnoreIf
-import spock.lang.Specification
-import spock.lang.TempDir
-
 import org.ajoberstar.grgit.Grgit
-import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.UnexpectedBuildFailure
+import spock.lang.Specification
+import spock.lang.TempDir
 
 class BaseCompatTest extends Specification {
   @TempDir File tempDir
@@ -25,7 +23,7 @@ class BaseCompatTest extends Specification {
 
     remoteFile('master.txt') << 'contents here'
     remote.add(patterns: ['.'])
-    remote.commit(message: 'first commit')
+    remote.commit(message: 'first commit', sign: false)
 
     // handle different init branches to keep existing tests the same
     if (remote.branch.current().name != 'master') {
@@ -37,7 +35,7 @@ class BaseCompatTest extends Specification {
     remoteFile('index.md') << '# This Page is Awesome!'
     remoteFile('1.0.0/index.md') << '# Version 1.0.0 is the Best!'
     remote.add(patterns: ['.'])
-    remote.commit(message: 'first pages commit')
+    remote.commit(message: 'first pages commit', sign: false)
 
     remote.checkout(branch: 'master')
   }
@@ -52,7 +50,7 @@ plugins {
 }
 
 gitPublish {
-  repoUri = '${remote.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote)}'
   branch = 'my-pages'
   contents.from 'src'
 }
@@ -77,7 +75,7 @@ plugins {
 }
 
 gitPublish {
-  repoUri = '${remote.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote)}'
   branch = 'gh-pages'
   contents.from 'src'
 }
@@ -97,7 +95,7 @@ gitPublish {
     remote.checkout(branch: 'gh-pages')
     remoteFile('index.md') << 'And has great content'
     remote.add(patterns: ['.'])
-    remote.commit(message: 'second pages commit')
+    remote.commit(message: 'second pages commit', sign: false)
     remote.checkout(branch: 'master')
 
     projectFile('src/content.txt') << 'published content here'
@@ -108,7 +106,7 @@ plugins {
 }
 
 gitPublish {
-  repoUri = '${remote.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote)}'
   branch = 'gh-pages'
   fetchDepth = 1
   contents.from 'src'
@@ -130,14 +128,14 @@ gitPublish {
   def 'reset pulls from reference repo if available before pulling from remote'() {
     given:
     def referenceDir = new File(tempDir, 'reference')
-    def reference = Grgit.clone(dir: referenceDir, uri: remote.repository.rootDir.toURI())
+    def reference = Grgit.clone(dir: referenceDir, uri: repoPath(remote))
     reference.checkout(branch: 'gh-pages', createBranch: true)
     // add a file that will get fetched but not pushed
     def refFile = new File(reference.repository.rootDir, 'src/newFile.txt')
     refFile.parentFile.mkdirs()
     refFile.text = 'Some content'
     reference.add(patterns: ['.'])
-    reference.commit(message: 'This wont get pushed')
+    reference.commit(message: 'This wont get pushed', sign: false)
 
     projectFile('src/content.txt') << 'published content here'
 
@@ -147,8 +145,8 @@ plugins {
 }
 
 gitPublish {
-  repoUri = '${remote.repository.rootDir.toURI()}'
-  referenceRepoUri = '${reference.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote)}'
+  referenceRepoUri = '${repoPath(reference)}'
   branch = 'gh-pages'
   contents.from 'src'
 }
@@ -159,7 +157,7 @@ gitPublish {
     remote.checkout(branch: 'gh-pages')
     then:
     result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
-    result.output.contains('Fetching from reference repo')
+    result.output.contains('gh-pages   -> reference/gh-pages')
     remote.log().size() == 2
     remoteFile('content.txt').text == 'published content here'
     !remoteFile('newFile.txt').exists()
@@ -175,7 +173,7 @@ plugins {
 }
 
 gitPublish {
-  repoUri = '${remote.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote)}'
   repoDir = file('build/this-is-custom')
   branch = 'gh-pages'
   contents.from 'src'
@@ -197,7 +195,7 @@ plugins {
 }
 
 gitPublish {
-  repoUri = '${remote.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote)}'
   branch = 'gh-pages'
   contents.from 'src'
 
@@ -229,7 +227,7 @@ plugins {
 }
 
 gitPublish {
-  repoUri = '${remote.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote)}'
   branch = 'gh-pages'
   contents {
     from('src1') {
@@ -263,7 +261,7 @@ plugins {
 }
 
 gitPublish {
-  repoUri = '${remote.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote)}'
   branch = 'gh-pages'
   contents.from 'src'
 }
@@ -274,16 +272,16 @@ gitPublish {
     remote.checkout(branch: 'gh-pages')
     then:
     result.task(':gitPublishCommit').outcome == TaskOutcome.UP_TO_DATE
-    result.task(':gitPublishPush').outcome == TaskOutcome.SKIPPED
+    result.task(':gitPublishPush').outcome == TaskOutcome.UP_TO_DATE
   }
 
   def 'existing working repo is reused if valid'() {
     given:
-    def working = Grgit.clone(dir: "${projectDir}/build/gitPublish", uri: remote.repository.rootDir.toURI())
+    def working = Grgit.clone(dir: "${projectDir}/build/gitPublish", uri: repoPath(remote))
     working.checkout(branch: 'master')
     new File(projectDir, 'build/gitPublish/master.txt') << 'working repo was here'
     working.add(patterns: ['.'])
-    working.commit(message: 'working repo was here')
+    working.commit(message: 'working repo was here', sign: false)
     working.checkout(branch: 'gh-pages', startPoint: 'origin/gh-pages', createBranch: 'true')
     working.close()
 
@@ -293,7 +291,7 @@ plugins {
 }
 
 gitPublish {
-  repoUri = '${remote.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote)}'
   branch = 'gh-pages'
   contents {
     from 'src'
@@ -320,7 +318,7 @@ gitPublish {
 
     new File(badRemoteDir, 'master.txt') << 'bad contents here'
     badRemote.add(patterns: ['.'])
-    badRemote.commit(message: 'bad first commit')
+    badRemote.commit(message: 'bad first commit', sign: false)
 
     // handle different init branches to keep existing tests the same
     if (badRemote.branch.current().name != 'master') {
@@ -339,7 +337,7 @@ plugins {
 }
 
 gitPublish {
-  repoUri = '${remote.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote)}'
   branch = 'gh-pages'
   contents.from 'src'
 }
@@ -384,7 +382,7 @@ plugins {
 }
 
 gitPublish {
-  repoUri = '${remote.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote)}'
   branch = 'gh-pages'
   contents.from 'src'
   commitMessage = "Deploy docs to gh-pages (\${project.name})"
@@ -398,7 +396,7 @@ gitPublish {
     result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
     remote.log().size() == 2
     remoteFile('content.txt').text == 'published content here'
-    remote.head().fullMessage == "Deploy docs to gh-pages (${projectFile('.').canonicalFile.name})"
+    remote.head().fullMessage == "Deploy docs to gh-pages (${projectFile('.').canonicalFile.name})\n"
   }
 
   def 'can activate signing'() {
@@ -415,7 +413,7 @@ plugins {
 }
 
 gitPublish {
-  repoUri = '${remote.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote)}'
   branch = 'gh-pages'
   contents.from 'src'
   sign = true
@@ -425,7 +423,7 @@ gitPublish {
     def result = buildAndFail()
 
     then:
-    result.output.contains("org.eclipse.jgit.api.errors.ServiceUnavailableException")
+    result.output.contains("gpg: signing failed: No secret key")
   }
 
   def 'can deactivate signing'() {
@@ -442,7 +440,7 @@ plugins {
 }
 
 gitPublish {
-  repoUri = '${remote.repository.rootDir.toURI()}'
+  repoUri = '${repoPath(remote)}'
   branch = 'gh-pages'
   contents.from 'src'
   sign = false
@@ -455,11 +453,11 @@ gitPublish {
     result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
   }
 
-  private BuildResult build(String... args = ['gitPublishPush', '--stacktrace', '--info', '--configuration-cache']) {
+  private BuildResult build(String... args = ['gitPublishPush', '--stacktrace', '--configuration-cache']) {
     return runner(args).build()
   }
 
-  private BuildResult buildAndFail(String... args = ['gitPublishPush', '--stacktrace', '--info', '--configuration-cache']) {
+  private BuildResult buildAndFail(String... args = ['gitPublishPush', '--stacktrace', '--configuration-cache']) {
     return runner(args).buildAndFail()
   }
 
@@ -482,5 +480,9 @@ gitPublish {
     File file = new File(projectDir, path)
     file.parentFile.mkdirs()
     return file
+  }
+
+  private String repoPath(Grgit repo) {
+    return repo.repository.rootDir.toPath().toAbsolutePath().toString().replace('\\', '\\\\')
   }
 }
