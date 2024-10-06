@@ -2,11 +2,13 @@
 
 [![CI](https://github.com/ajoberstar/gradle-git-publish/actions/workflows/ci.yaml/badge.svg)](https://github.com/ajoberstar/gradle-git-publish/actions/workflows/ci.yaml)
 
-**NOTE:** As of 3.0.1, gradle-git-publish is published to Maven Central
+> [!NOTE]
+> As of 3.0.1, gradle-git-publish is published to Maven Central
 
 ## Getting Help or Contributing
 
-**IMPORANT:** I consider this plugin feature complete and don't spend a lot of time on maintenance due to other time commitments. While, I will eventually get to issues or PRs raised, **do not** expect a timely response. I'm not trying to be rude or dismissive, I only get back to this project periodically (on the order of _months_, in many cases). Please set your expectations appropriately as you file issues or open PRs.
+> [!IMPORTANT]
+> I consider this plugin feature complete and don't spend a lot of time on maintenance due to other time commitments. While, I will eventually get to issues or PRs raised, do not expect a timely response. I'm not trying to be rude or dismissive, I only get back to this project periodically (on the order of _months_, in many cases). Please set your expectations appropriately as you file issues or open PRs.
 
 Please use the repo's [issues](https://github.com/ajoberstar/gradle-git-publish/issues) for all questions, bug reports, and feature requests.
 
@@ -24,8 +26,10 @@ configuration for authentication.
 
 ## Usage
 
-See the [Release Notes](https://github.com/ajoberstar/gradle-git-publish/releases) for updates on
-changes and compatibility with Java and Gradle versions.
+See the [Release Notes](https://github.com/ajoberstar/gradle-git-publish/releases) for updates on changes and compatibility with Java and Gradle versions.
+
+> [!NOTE]
+> As of 5.0.0, the plugin uses the Git CLI for all behavior. `git` binary must be on the `PATH`.
 
 ### Applying the Plugin
 
@@ -37,7 +41,7 @@ plugins {
 
 ### Configuration
 
-**NOTE:** In general, there are no default values here. The main exception is that the `repoUri` and `referenceRepoUri` will be automatically set if you use the `org.ajoberstar.grgit` plugin to your project's origin repo URI.
+**NOTE:** In general, there are no default values here. The main exception is that the `repoUri` and `referenceRepoUri` will be automatically set to your project's git repo's origin and root dir, respectively.
 
 ```groovy
 gitPublish {
@@ -55,7 +59,7 @@ gitPublish {
     fetchDepth = null
 
     // generally, you don't need to touch this
-    repoDir = file("$buildDir/somewhereelse") // defaults to $buildDir/gitPublish
+    repoDir = file("$buildDir/somewhere-else") // defaults to $buildDir/gitPublish
 
     // what to publish, this is a standard CopySpec
     contents {
