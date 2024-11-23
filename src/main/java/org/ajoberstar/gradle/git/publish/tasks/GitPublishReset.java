@@ -136,6 +136,7 @@ public abstract class GitPublishReset extends DefaultTask {
         if (getFetchDepth().isPresent()) {
           spec.args("--depth", getFetchDepth().get());
         }
+        spec.args("--no-tags");
         spec.args("origin", refSpec);
 
         spec.workingDir(repoDir);
