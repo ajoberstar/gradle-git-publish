@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.inject.Inject;
 
@@ -91,51 +94,21 @@ public abstract class GitPublishReset extends DefaultTask {
       });
     }
 
-    // set reference
+    // set alternate object store if reference used
     if (getReferenceRepoUri().isPresent()) {
-      try {
-        getExecOperations().exec(spec -> {
-          spec.commandLine("git", "remote", "add", "reference", getReferenceRepoUri().get());
-          spec.workingDir(repoDir);
-          spec.setStandardOutput(OutputStream.nullOutputStream());
-          spec.setErrorOutput(OutputStream.nullOutputStream());
-        });
-      } catch (Exception e) {
-        getExecOperations().exec(spec -> {
-          spec.commandLine("git", "remote", "set-url", "reference", getReferenceRepoUri().get());
-          spec.workingDir(repoDir);
-          spec.setStandardOutput(OutputStream.nullOutputStream());
-        });
-      }
+      Path repoObjectsPath = repoDir.toPath().resolve(".git").resolve("objects");
+      Path alternatesPath = repoObjectsPath.resolve("info").resolve("alternates");
 
-      // check reference for branch
-      boolean referenceHasBranch;
-      try {
-        getExecOperations().exec(spec -> {
-          spec.commandLine("git", "ls-remote", "--exit-code", "reference", pubBranch);
-          spec.workingDir(repoDir);
-          spec.setStandardOutput(OutputStream.nullOutputStream());
-        });
-        referenceHasBranch = true;
-      } catch (Exception e) {
-        referenceHasBranch = false;
-      }
+      Path referenceRepoPath = Path.of(getReferenceRepoUri().get());
 
-      if (referenceHasBranch) {
-        // get local branch reset to remote state
-        getExecOperations().exec(spec -> {
-          var refSpec = String.format("+refs/heads/%s:refs/remotes/reference/%s", pubBranch, pubBranch);
-
-          spec.executable("git");
-          spec.args("fetch");
-          if (getFetchDepth().isPresent()) {
-            spec.args("--depth", getFetchDepth().get());
-          }
-          spec.args("reference", refSpec);
-
-          spec.workingDir(repoDir);
-          spec.setStandardOutput(OutputStream.nullOutputStream());
-        });
+      Path referenceRepoObjectsPath = referenceRepoPath.resolve(".git").resolve("objects");
+      Path referenceBareRepoObjectsPath = referenceRepoPath.resolve("objects");
+      if (Files.exists(referenceRepoObjectsPath)) {
+        Files.writeString(alternatesPath, referenceRepoObjectsPath + "\n", StandardCharsets.UTF_8);
+      } else if (Files.exists(referenceBareRepoObjectsPath)) {
+        Files.writeString(alternatesPath, referenceBareRepoObjectsPath + "\n", StandardCharsets.UTF_8);
+      } else {
+        getLogger().warn("Reference repo doesn't seem to have an objects database: {}", referenceRepoPath);
       }
     }
 
@@ -146,6 +119,7 @@ public abstract class GitPublishReset extends DefaultTask {
         spec.commandLine("git", "ls-remote", "--exit-code", "origin", pubBranch);
         spec.workingDir(repoDir);
         spec.setStandardOutput(OutputStream.nullOutputStream());
+        spec.setErrorOutput(OutputStream.nullOutputStream());
       });
       hasBranch = true;
     } catch (Exception e) {
