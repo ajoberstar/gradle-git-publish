@@ -1,7 +1,5 @@
 package org.ajoberstar.gradle.git.publish;
 
-import java.nio.file.Path;
-
 import org.ajoberstar.gradle.git.publish.tasks.GitPublishCommit;
 import org.ajoberstar.gradle.git.publish.tasks.GitPublishPush;
 import org.ajoberstar.gradle.git.publish.tasks.GitPublishReset;
