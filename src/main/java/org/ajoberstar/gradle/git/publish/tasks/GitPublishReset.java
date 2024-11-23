@@ -69,7 +69,7 @@ public abstract class GitPublishReset extends DefaultTask {
     // initialize git repo
     if (!new File(repoDir, ".git").exists()) {
       getExecOperations().exec(spec -> {
-        spec.commandLine("git", "init");
+        spec.commandLine("git", "init", "--initial-branch=" + pubBranch);
         spec.workingDir(repoDir);
         spec.setStandardOutput(OutputStream.nullOutputStream());
       });
