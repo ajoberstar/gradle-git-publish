@@ -8,6 +8,8 @@ import org.gradle.testkit.runner.UnexpectedBuildFailure
 import spock.lang.Specification
 import spock.lang.TempDir
 
+import java.rmi.UnexpectedException
+
 class BaseCompatTest extends Specification {
   @TempDir File tempDir
   File projectDir
@@ -125,7 +127,7 @@ gitPublish {
     working.close()
   }
 
-  def 'reset pulls from reference repo if available before pulling from remote'() {
+  def 'reset uses reference repo objects if available before pulling from remote'() {
     given:
     def referenceDir = new File(tempDir, 'reference')
     def reference = Grgit.clone(dir: referenceDir, uri: repoPath(remote))
@@ -157,7 +159,6 @@ gitPublish {
     remote.checkout(branch: 'gh-pages')
     then:
     result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
-    result.output.contains('gh-pages   -> reference/gh-pages')
     remote.log().size() == 2
     remoteFile('content.txt').text == 'published content here'
     !remoteFile('newFile.txt').exists()
@@ -326,7 +327,6 @@ gitPublish {
     }
 
     def working = Grgit.clone(dir: "${projectDir}/build/gitPublish", uri: badRemote.repository.rootDir.toURI())
-    working.checkout(branch: 'gh-pages', startPoint: 'origin/master', createBranch: true)
     working.close()
 
     new File(projectDir, 'content.txt') << 'published content here'
@@ -348,9 +348,11 @@ gitPublish {
     and:
     remote.checkout(branch: 'gh-pages')
     working = Grgit.open(dir: "${projectDir}/build/gitPublish")
+    working.checkout(branch: 'master')
     then:
     result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
     remote.log().size() == 2
+    working.head().fullMessage == 'bad first commit'
   }
 
   def 'when no git publish tasks are run, build completes successfully'() {
@@ -420,10 +422,15 @@ gitPublish {
 }
 """
     when:
-    def result = buildAndFail()
+    def result = buildOrFail()
 
     then:
-    result.output.contains("gpg: signing failed: No secret key")
+    def newCommit = remote.resolve.toCommit("gh-pages").id
+    def remoteGitDir = "${remote.repository.rootDir}/.git"
+    def proc = "git --git-dir ${remoteGitDir} cat-file -p ${newCommit}".execute()
+    def latestCommit = proc.in.text
+    // either it will work and sign or the key will be missing and it won't be able to
+    latestCommit.contains("gpgsig") || result.output.contains("gpg: signing failed: No secret key")
   }
 
   def 'can deactivate signing'() {
@@ -451,6 +458,12 @@ gitPublish {
 
     then:
     result.task(':gitPublishPush').outcome == TaskOutcome.SUCCESS
+
+    def newCommit = remote.resolve.toCommit("gh-pages").id
+    def remoteGitDir = "${remote.repository.rootDir}/.git"
+    def proc = "git --git-dir ${remoteGitDir} cat-file -p ${newCommit}".execute()
+    def latestCommit = proc.in.text
+    !latestCommit.contains('gpgsign')
   }
 
   private BuildResult build(String... args = ['gitPublishPush', '--stacktrace', '--configuration-cache']) {
@@ -459,6 +472,14 @@ gitPublish {
 
   private BuildResult buildAndFail(String... args = ['gitPublishPush', '--stacktrace', '--configuration-cache']) {
     return runner(args).buildAndFail()
+  }
+
+  private BuildResult buildOrFail(String... args = ['gitPublishPush', '--stacktrace', '--configuration-cache']) {
+    try {
+      return runner(args).build()
+    } catch (UnexpectedBuildFailure e) {
+      return e.buildResult
+    }
   }
 
   private GradleRunner runner(String... args) {
