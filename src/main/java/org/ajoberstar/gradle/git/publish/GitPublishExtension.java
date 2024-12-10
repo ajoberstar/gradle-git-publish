@@ -70,4 +70,12 @@ public class GitPublishExtension {
   public void preserve(Action<? super PatternFilterable> action) {
     publications.getByName("main").preserve(action);
   }
+
+  public Property<String> getUsername() {
+    return publications.getByName("main").getUsername();
+  }
+
+  public Property<String> getPassword() {
+    return publications.getByName("main").getPassword();
+  }
 }

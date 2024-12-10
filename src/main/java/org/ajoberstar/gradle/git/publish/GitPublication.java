@@ -21,6 +21,8 @@ public class GitPublication implements Named {
   private final Property<Boolean> sign;
   private final CopySpec contents;
   private final PatternFilterable preserve;
+  private final Property<String> username;
+  private final Property<String> password;
 
   public GitPublication(String name, Project project, ObjectFactory objectFactory) {
     this.name = name;
@@ -35,6 +37,9 @@ public class GitPublication implements Named {
     this.contents = project.copySpec();
     this.preserve = new PatternSet();
     this.preserve.include(".git/**/*");
+
+    this.username = objectFactory.property(String.class);
+    this.password = objectFactory.property(String.class);
   }
 
   @Override
@@ -84,5 +89,13 @@ public class GitPublication implements Named {
 
   public void preserve(Action<? super PatternFilterable> action) {
     action.execute(preserve);
+  }
+
+  public Property<String> getUsername() {
+    return username;
+  }
+
+  public Property<String> getPassword() {
+    return password;
   }
 }
