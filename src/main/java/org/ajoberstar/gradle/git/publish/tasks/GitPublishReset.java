@@ -58,6 +58,12 @@ public abstract class GitPublishReset extends DefaultTask {
     this.preserve = preserve;
   }
 
+  @Internal
+  public abstract Property<String> getUsername();
+
+  @Internal
+  public abstract Property<String> getPassword();
+
   @Inject
   protected abstract ObjectFactory getObjectFactory();
 
@@ -73,6 +79,16 @@ public abstract class GitPublishReset extends DefaultTask {
     if (!new File(repoDir, ".git").exists()) {
       getExecOperations().exec(spec -> {
         spec.commandLine("git", "init", "--initial-branch=" + pubBranch);
+        spec.workingDir(repoDir);
+        spec.setStandardOutput(OutputStream.nullOutputStream());
+      });
+    }
+
+    // (if credentials) set credential helper
+    if (getUsername().isPresent() && getPassword().isPresent()) {
+      getExecOperations().exec(spec -> {
+        var script = "!f() { echo username=$GIT_USERNAME; echo password=$GIT_PASSWORD; }; f";
+        spec.commandLine("git", "config", "--local", "credential.helper", script);
         spec.workingDir(repoDir);
         spec.setStandardOutput(OutputStream.nullOutputStream());
       });
@@ -124,6 +140,12 @@ public abstract class GitPublishReset extends DefaultTask {
       getExecOperations().exec(spec -> {
         spec.commandLine("git", "ls-remote", "--exit-code", "origin", pubBranch);
         spec.workingDir(repoDir);
+
+        if (getUsername().isPresent() && getPassword().isPresent()) {
+          spec.environment("GIT_USERNAME", getUsername().get());
+          spec.environment("GIT_PASSWORD", getPassword().get());
+        }
+
         spec.setStandardOutput(OutputStream.nullOutputStream());
         spec.setErrorOutput(OutputStream.nullOutputStream());
       });
@@ -144,6 +166,11 @@ public abstract class GitPublishReset extends DefaultTask {
         }
         spec.args("--no-tags");
         spec.args("origin", refSpec);
+
+        if (getUsername().isPresent() && getPassword().isPresent()) {
+          spec.environment("GIT_USERNAME", getUsername().get());
+          spec.environment("GIT_PASSWORD", getPassword().get());
+        }
 
         spec.workingDir(repoDir);
         spec.setStandardOutput(OutputStream.nullOutputStream());

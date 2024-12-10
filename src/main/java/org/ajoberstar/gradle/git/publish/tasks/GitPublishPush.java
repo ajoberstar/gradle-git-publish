@@ -26,6 +26,12 @@ public abstract class GitPublishPush extends DefaultTask {
   @Input
   public abstract Property<String> getBranch();
 
+  @Internal
+  public abstract Property<String> getUsername();
+
+  @Internal
+  public abstract Property<String> getPassword();
+
   @Inject
   protected abstract ExecOperations getExecOperations();
 
@@ -36,6 +42,12 @@ public abstract class GitPublishPush extends DefaultTask {
     getExecOperations().exec(spec -> {
       var refSpec = String.format("refs/heads/%s:refs/heads/%s", pubBranch, pubBranch);
       spec.commandLine("git", "push", "--porcelain", "--set-upstream", "origin", refSpec);
+
+      if (getUsername().isPresent() && getPassword().isPresent()) {
+        spec.environment("GIT_USERNAME", getUsername().get());
+        spec.environment("GIT_PASSWORD", getPassword().get());
+      }
+
       spec.workingDir(getRepoDir().get());
       spec.setStandardOutput(output);
     });

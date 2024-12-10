@@ -27,6 +27,8 @@ See the [Release Notes](https://github.com/ajoberstar/gradle-git-publish/release
 
 > [!NOTE]
 > As of 5.0.0, the plugin uses the Git CLI for all behavior. `git` binary must be on the `PATH`.
+>
+> If you relied on Grgit's authentication, such as `GRGIT_USER`, use the new `username` and `password` properties on the `GitPublication`. See the configuration documentation below.
 
 ### Applying the Plugin
 
@@ -77,6 +79,11 @@ gitPublish {
     
     // for signing commits, omit to use the default from your gitconfig
     sign = false
+    
+    // if you need to provide credentials, set both of these
+    // use an external source, such as an environment variable
+    username = 'dont-harcode'
+    password = 'dont-hardcode'
 }
 ```
 

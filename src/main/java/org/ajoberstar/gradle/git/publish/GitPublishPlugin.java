@@ -58,6 +58,8 @@ public class GitPublishPlugin implements Plugin<Project> {
       task.getBranch().set(publication.getBranch());
       task.getFetchDepth().set(publication.getFetchDepth());
       task.setPreserve(publication.getPreserve());
+      task.getUsername().set(publication.getUsername());
+      task.getPassword().set(publication.getPassword());
     });
   }
 
@@ -91,6 +93,8 @@ public class GitPublishPlugin implements Plugin<Project> {
       task.setDescription("Pushes " + publication.getName() + " publication changes to git.");
       task.getRepoDir().set(publication.getRepoDir());
       task.getBranch().set(publication.getBranch());
+      task.getUsername().set(publication.getUsername());
+      task.getPassword().set(publication.getPassword());
     });
   }
 
