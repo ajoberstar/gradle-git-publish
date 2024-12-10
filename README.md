@@ -21,9 +21,6 @@ Git is immensely popular and being able to publish to it as part of a build proc
 `gradle-git-publish` is a [Gradle](http://gradle.org) plugin, `org.ajoberstar.git-publish`, which publishes files to a
 remote Git repository's branch.
 
-See [Grgit](https://github.com/ajoberstar/grgit) for details on the Git library used underneath, including
-configuration for authentication.
-
 ## Usage
 
 See the [Release Notes](https://github.com/ajoberstar/gradle-git-publish/releases) for updates on changes and compatibility with Java and Gradle versions.
