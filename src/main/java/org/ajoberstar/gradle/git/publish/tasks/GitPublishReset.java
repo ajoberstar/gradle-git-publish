@@ -94,19 +94,25 @@ public abstract class GitPublishReset extends DefaultTask {
       });
     }
 
-    // set alternate object store if reference used
-    if (getReferenceRepoUri().isPresent()) {
+    // set alternate object store if reference used and not using fetch depth
+    if (getReferenceRepoUri().isPresent() && !getFetchDepth().isPresent()) {
       Path repoObjectsPath = repoDir.toPath().resolve(".git").resolve("objects");
       Path alternatesPath = repoObjectsPath.resolve("info").resolve("alternates");
 
       Path referenceRepoPath = Path.of(getReferenceRepoUri().get());
+      Path referenceRepoGitPath = referenceRepoPath.resolve(".git");
+      if (Files.exists(referenceRepoGitPath)) {
+        // not a bare repo
+        referenceRepoPath = referenceRepoGitPath;
+      }
 
-      Path referenceRepoObjectsPath = referenceRepoPath.resolve(".git").resolve("objects");
-      Path referenceBareRepoObjectsPath = referenceRepoPath.resolve("objects");
-      if (Files.exists(referenceRepoObjectsPath)) {
+      Path referenceRepoShallowPath = referenceRepoPath.resolve("shallow");
+      Path referenceRepoObjectsPath = referenceRepoPath.resolve("objects");
+
+      if (Files.exists(referenceRepoShallowPath)) {
+        getLogger().info("Reference repo is shallow. Cannot use as a reference.");
+      } else if (Files.exists(referenceRepoObjectsPath)) {
         Files.writeString(alternatesPath, referenceRepoObjectsPath + "\n", StandardCharsets.UTF_8);
-      } else if (Files.exists(referenceBareRepoObjectsPath)) {
-        Files.writeString(alternatesPath, referenceBareRepoObjectsPath + "\n", StandardCharsets.UTF_8);
       } else {
         getLogger().warn("Reference repo doesn't seem to have an objects database: {}", referenceRepoPath);
       }
