@@ -86,12 +86,31 @@ public abstract class GitPublishReset extends DefaultTask {
 
     // (if credentials) set credential helper
     if (getUsername().isPresent() && getPassword().isPresent()) {
+      // blank out helper, so we can override global ones
       getExecOperations().exec(spec -> {
-        var script = "!f() { echo username=$GIT_USERNAME; echo password=$GIT_PASSWORD; }; f";
-        spec.commandLine("git", "config", "--local", "credential.helper", script);
+        spec.commandLine("git", "config", "--local", "--replace-all", "credential.helper", "");
         spec.workingDir(repoDir);
         spec.setStandardOutput(OutputStream.nullOutputStream());
       });
+      // now use our credentials
+      getExecOperations().exec(spec -> {
+        var script = "!f() { echo username=$GIT_USERNAME; echo password=$GIT_PASSWORD; }; f";
+        spec.commandLine("git", "config", "--local", "--add", "credential.helper", script);
+        spec.workingDir(repoDir);
+        spec.setStandardOutput(OutputStream.nullOutputStream());
+      });
+    } else {
+      // unset helper, to use global creds
+      var result = getExecOperations().exec(spec -> {
+        spec.commandLine("git", "config", "--unset-all", "--local", "credential.helper");
+        spec.workingDir(repoDir);
+        spec.setStandardOutput(OutputStream.nullOutputStream());
+        spec.setIgnoreExitValue(true);
+      });
+      // exit code 5 is unsetting something that's not set yet
+      if (result.getExitValue() != 0 && result.getExitValue() != 5) {
+        result.assertNormalExitValue();
+      }
     }
 
     // set origin
