@@ -22,9 +22,24 @@ java {
 }
 
 dependencies {
-  compatTestImplementation(gradleTestKit())
-  compatTestImplementation("org.spockframework:spock-core:2.3-groovy-3.0")
-  compatTestImplementation("org.ajoberstar.grgit:grgit-core:[5.0,6.0[")
+  modules {
+    module("org.codehaus.groovy:groovy") {
+      replacedBy("org.apache.groovy:groovy", "coordinates changed in v4")
+    }
+  }
+}
+
+testing {
+  suites {
+    val compatTest by getting(JvmTestSuite::class) {
+      useSpock("2.3-groovy-4.0")
+
+      dependencies {
+        implementation(gradleTestKit())
+        implementation("org.ajoberstar.grgit:grgit-core:[5.0,6.0[")
+      }
+    }
+  }
 }
 
 tasks.named<Jar>("jar") {
@@ -33,17 +48,13 @@ tasks.named<Jar>("jar") {
   }
 }
 
-tasks.withType<Test> {
-  useJUnitPlatform()
-}
-
 stutter {
   val java11 by matrices.creating {
     javaToolchain {
       languageVersion.set(JavaLanguageVersion.of(11))
     }
     gradleVersions {
-      compatibleRange("7.0")
+      compatibleRange("7.0", "9.0")
     }
   }
   val java17 by matrices.creating {

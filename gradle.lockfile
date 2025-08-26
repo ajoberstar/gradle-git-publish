@@ -3,15 +3,17 @@
 # This file is expected to be part of source control.
 com.googlecode.javaewah:JavaEWAH:1.2.3=compatTestCompileClasspath,compatTestRuntimeClasspath
 commons-codec:commons-codec:1.17.0=compatTestCompileClasspath,compatTestRuntimeClasspath
-org.ajoberstar.grgit:grgit-core:5.3.0=compatTestCompileClasspath,compatTestRuntimeClasspath
+org.ajoberstar.grgit:grgit-core:5.3.2=compatTestCompileClasspath,compatTestRuntimeClasspath
+org.apache.groovy:groovy-bom:4.0.4=compatTestCompileClasspath,compatTestRuntimeClasspath
+org.apache.groovy:groovy:4.0.4=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.apiguardian:apiguardian-api:1.1.2=compatTestCompileClasspath
-org.codehaus.groovy:groovy:3.0.22=compatTestCompileClasspath,compatTestRuntimeClasspath
-org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r=compatTestCompileClasspath,compatTestRuntimeClasspath
+org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.hamcrest:hamcrest:2.2=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.junit.platform:junit-platform-commons:1.9.0=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.junit.platform:junit-platform-engine:1.9.0=compatTestCompileClasspath,compatTestRuntimeClasspath
+org.junit.platform:junit-platform-launcher:1.9.0=compatTestRuntimeClasspath
 org.junit:junit-bom:5.9.0=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.opentest4j:opentest4j:1.2.0=compatTestCompileClasspath,compatTestRuntimeClasspath
 org.slf4j:slf4j-api:1.7.36=compatTestCompileClasspath,compatTestRuntimeClasspath
-org.spockframework:spock-core:2.3-groovy-3.0=compatTestCompileClasspath,compatTestRuntimeClasspath
+org.spockframework:spock-core:2.3-groovy-4.0=compatTestCompileClasspath,compatTestRuntimeClasspath
 empty=annotationProcessor,compatTestAnnotationProcessor,compileClasspath,runtimeClasspath,signatures,testAnnotationProcessor,testCompileClasspath,testRuntimeClasspath
