@@ -11,4 +11,3 @@ bin
 .idea
 out
 *.sublime-*
-gradle.properties
