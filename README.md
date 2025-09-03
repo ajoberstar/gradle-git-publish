@@ -1,5 +1,8 @@
 # gradle-git-publish
 
+> [!IMPORTANT]
+> This plugin is now maintained on [SourceHut](https://git.sr.ht/~ajoberstar/gradle-git-publish).
+
 [![CI](https://github.com/ajoberstar/gradle-git-publish/actions/workflows/ci.yaml/badge.svg)](https://github.com/ajoberstar/gradle-git-publish/actions/workflows/ci.yaml)
 
 > [!NOTE]
